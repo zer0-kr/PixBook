@@ -94,6 +94,12 @@ body {
   box-shadow: 1px 1px 0px #3D2C2E;
 }
 
+.pixel-card-static {
+  border: 3px solid #3D2C2E;
+  box-shadow: 2px 2px 0px #3D2C2E;
+  background: #FFF8E7;
+}
+
 /* Pixel Button Base */
 .pixel-btn {
   border: 3px solid #3D2C2E;
@@ -168,3 +174,19 @@ body {
 
 .pixel-loading > span:nth-child(2) { animation-delay: 0.1s; }
 .pixel-loading > span:nth-child(3) { animation-delay: 0.2s; }
+
+/* Toast Animation */
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-enter {
+  animation: toast-slide-in 0.2s ease-out;
+}
