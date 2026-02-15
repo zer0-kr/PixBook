@@ -4,7 +4,9 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { PixelButton, StarRating } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
-import type { UserBook, ReadingStatus } from "@/types";
+import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
+import UnlockAnimation from "@/components/characters/UnlockAnimation";
+import type { UserBook, ReadingStatus, Character } from "@/types";
 
 const STATUS_OPTIONS: { key: ReadingStatus; label: string; color: string }[] = [
   { key: "want_to_read", label: "읽고 싶은", color: "bg-status-want text-brown" },
@@ -39,6 +41,8 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
   const [endDate, setEndDate] = useState(userBook.end_date ?? "");
   const [spineColor, setSpineColor] = useState(userBook.spine_color ?? SPINE_COLORS[0]);
   const [isSaving, setIsSaving] = useState(false);
+  const [unlockedCharacters, setUnlockedCharacters] = useState<Character[]>([]);
+  const [showUnlockIndex, setShowUnlockIndex] = useState<number>(-1);
 
   const { toast } = useToast();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -130,6 +134,19 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
       if (error) {
         console.error("Error updating tower height:", error);
+        return;
+      }
+
+      // Check for newly unlocked characters
+      const newlyUnlocked = await checkAndUnlockCharacters(
+        supabase,
+        user.id,
+        towerHeight
+      );
+
+      if (newlyUnlocked.length > 0) {
+        setUnlockedCharacters(newlyUnlocked);
+        setShowUnlockIndex(0);
       }
     } catch (err) {
       console.error("Error recalculating tower:", err);
@@ -323,6 +340,23 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
       {/* Saving indicator */}
       {isSaving && (
         <p className="text-xs text-brown-lighter animate-pulse">저장 중...</p>
+      )}
+
+      {/* Character unlock animation */}
+      {showUnlockIndex >= 0 && showUnlockIndex < unlockedCharacters.length && (
+        <UnlockAnimation
+          character={unlockedCharacters[showUnlockIndex]}
+          isOpen={true}
+          onClose={() => {
+            const nextIndex = showUnlockIndex + 1;
+            if (nextIndex < unlockedCharacters.length) {
+              setShowUnlockIndex(nextIndex);
+            } else {
+              setShowUnlockIndex(-1);
+              setUnlockedCharacters([]);
+            }
+          }}
+        />
       )}
     </div>
   );

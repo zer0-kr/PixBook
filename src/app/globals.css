@@ -200,3 +200,38 @@ body {
 .animate-bounce-slow {
   animation: idle-bounce 1.5s ease-in-out infinite;
 }
+
+/* Character Unlock Sparkle Animation */
+@keyframes sparkle-float {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.2) translateY(-5px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.8) translateY(-15px);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0) translateY(-30px);
+  }
+}
+
+.sparkle-particle {
+  animation: sparkle-float 1.5s ease-out infinite;
+  image-rendering: pixelated;
+}
+
+/* Character unlock title glow */
+@keyframes title-glow {
+  0%, 100% { text-shadow: 0 0 4px rgba(255, 215, 0, 0.4); }
+  50% { text-shadow: 0 0 12px rgba(255, 215, 0, 0.8), 0 0 20px rgba(255, 215, 0, 0.3); }
+}
+
+.unlock-title-glow {
+  animation: title-glow 2s ease-in-out infinite;
+}
