@@ -1,0 +1,117 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { Header } from "@/components/layout";
+import { StatsPageView } from "@/components/stats";
+import type { Profile, UserBook, ReadingSession } from "@/types";
+
+export const metadata = {
+  title: "통계 | 북적북적",
+};
+
+export default async function StatsPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const currentYear = new Date().getFullYear();
+  const yearStart = `${currentYear}-01-01`;
+  const yearEnd = `${currentYear}-12-31`;
+
+  // Fetch profile
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const profile = profileData as Profile | null;
+
+  // Fetch completed user_books this year with book data
+  const { data: completedThisYear } = await supabase
+    .from("user_books")
+    .select("*, book:books(*)")
+    .eq("user_id", user.id)
+    .eq("reading_status", "completed")
+    .gte("end_date", yearStart)
+    .lte("end_date", yearEnd);
+
+  const completedBooks: UserBook[] = (completedThisYear ?? []).map((row) => ({
+    ...row,
+    book: row.book ?? undefined,
+  }));
+
+  // Fetch reading sessions for calendar heatmap (current year)
+  const { data: sessionsData } = await supabase
+    .from("reading_sessions")
+    .select("*")
+    .eq("user_id", user.id)
+    .gte("date", yearStart)
+    .lte("date", yearEnd);
+
+  const sessions: ReadingSession[] = sessionsData ?? [];
+
+  // Calculate stats
+  const totalBooksCompleted = completedBooks.length;
+  const totalPagesRead = completedBooks.reduce(
+    (sum, ub) => sum + (ub.book?.page_count ?? 0),
+    0
+  );
+  const towerHeightCm = profile?.tower_height_cm ?? 0;
+
+  // Average books per month (based on current month number)
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  const averageBooksPerMonth =
+    currentMonth > 0
+      ? Math.round((totalBooksCompleted / currentMonth) * 10) / 10
+      : 0;
+
+  // Build monthly data for bar chart (last 12 months)
+  const monthlyData: { month: string; count: number }[] = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const count = completedBooks.filter((ub) => {
+      if (!ub.end_date) return false;
+      return ub.end_date.startsWith(monthStr);
+    }).length;
+    monthlyData.push({ month: monthStr, count });
+  }
+
+  // Build calendar sessions data
+  const calendarSessions = sessions.map((s) => ({
+    date: s.date,
+    pages: s.pages_read,
+  }));
+
+  // Build genre breakdown
+  const genreMap = new Map<string, number>();
+  for (const ub of completedBooks) {
+    const category = ub.book?.category ?? "미분류";
+    genreMap.set(category, (genreMap.get(category) ?? 0) + 1);
+  }
+  const genreData = Array.from(genreMap.entries())
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
+
+  return (
+    <>
+      <Header title="통계" />
+      <StatsPageView
+        totalBooksCompleted={totalBooksCompleted}
+        totalPagesRead={totalPagesRead}
+        towerHeightCm={towerHeightCm}
+        averageBooksPerMonth={averageBooksPerMonth}
+        monthlyData={monthlyData}
+        calendarSessions={calendarSessions}
+        genreData={genreData}
+        currentYear={currentYear}
+      />
+    </>
+  );
+}
