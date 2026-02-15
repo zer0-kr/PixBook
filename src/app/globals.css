@@ -190,3 +190,13 @@ body {
 .toast-enter {
   animation: toast-slide-in 0.2s ease-out;
 }
+
+/* Character idle bounce on top of tower */
+@keyframes idle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-bounce-slow {
+  animation: idle-bounce 1.5s ease-in-out infinite;
+}
