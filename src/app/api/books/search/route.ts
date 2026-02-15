@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 const MOCK_SEARCH_RESPONSE: AladinSearchResponse = {
@@ -45,6 +46,12 @@ const MOCK_SEARCH_RESPONSE: AladinSearchResponse = {
 };
 
 export async function GET(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { searchParams } = request.nextUrl;
   const query = searchParams.get("query");
   const page = searchParams.get("page") || "1";
@@ -53,6 +60,13 @@ export async function GET(request: NextRequest) {
   if (!query) {
     return NextResponse.json(
       { error: "query parameter is required" },
+      { status: 400 }
+    );
+  }
+
+  if (query.length > 200) {
+    return NextResponse.json(
+      { error: "query is too long (max 200 characters)" },
       { status: 400 }
     );
   }

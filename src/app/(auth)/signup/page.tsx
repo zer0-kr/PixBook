@@ -27,7 +27,7 @@ export default function SignupPage() {
           data: {
             nickname,
           },
-          emailRedirectTo: `${window.location.origin}/callback`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/callback`,
         },
       });
 

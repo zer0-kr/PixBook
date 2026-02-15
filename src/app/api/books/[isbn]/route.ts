@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 const MOCK_LOOKUP_RESPONSE: AladinSearchResponse = {
@@ -39,11 +40,24 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ isbn: string }> }
 ) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { isbn } = await params;
 
   if (!isbn) {
     return NextResponse.json(
       { error: "isbn parameter is required" },
+      { status: 400 }
+    );
+  }
+
+  if (!/^\d{13}$/.test(isbn)) {
+    return NextResponse.json(
+      { error: "Invalid ISBN13 format" },
       { status: 400 }
     );
   }

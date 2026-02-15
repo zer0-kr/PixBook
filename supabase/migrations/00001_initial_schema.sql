@@ -220,11 +220,7 @@ CREATE POLICY "Authenticated users can insert books"
   TO authenticated
   WITH CHECK (true);
 
-CREATE POLICY "Authenticated users can update books"
-  ON books FOR UPDATE
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
+-- No UPDATE policy for books – updates are handled server-side only
 
 -- --- characters ---
 ALTER TABLE characters ENABLE ROW LEVEL SECURITY;

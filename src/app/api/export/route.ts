@@ -13,6 +13,11 @@ interface ExportRow {
   완료일: string;
 }
 
+function escapeCsvFormula(str: string): string {
+  if (/^[=+\-@]/.test(str)) return `'${str}`;
+  return str;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   want_to_read: "읽고 싶은",
   reading: "읽는 중",
@@ -102,7 +107,8 @@ export async function GET(request: NextRequest) {
       headers
         .map((h) => {
           const value = row[h as keyof ExportRow];
-          const str = value === null || value === undefined ? "" : String(value);
+          const raw = value === null || value === undefined ? "" : String(value);
+          const str = escapeCsvFormula(raw);
           // Escape quotes and wrap in quotes if contains comma, quote, or newline
           if (str.includes(",") || str.includes('"') || str.includes("\n")) {
             return `"${str.replace(/"/g, '""')}"`;
