@@ -1,12 +1,38 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout";
+import { LibraryView } from "@/components/library";
+import type { UserBook } from "@/types";
 
-export default function LibraryPage() {
+export default async function LibraryPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data, error } = await supabase
+    .from("user_books")
+    .select("*, book:books(*)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user books:", error);
+  }
+
+  const userBooks: UserBook[] = (data ?? []).map((row) => ({
+    ...row,
+    book: row.book ?? undefined,
+  }));
+
   return (
     <>
       <Header title="서재" />
-      <div className="p-4">
-        <p className="text-sm text-brown-lighter">서재 페이지 준비 중...</p>
-      </div>
+      <LibraryView userBooks={userBooks} />
     </>
   );
 }
