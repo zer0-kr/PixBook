@@ -23,10 +23,9 @@ const TABS: Tab[] = [
 ];
 
 const DEFAULT_SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "newest", label: "최신추가" },
+  { key: "newest", label: "등록순" },
   { key: "title", label: "제목" },
   { key: "author", label: "저자" },
-  { key: "rating", label: "평점" },
 ];
 
 const COMPLETED_SORT_OPTIONS: { key: SortKey; label: string }[] = [
