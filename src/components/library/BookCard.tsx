@@ -31,15 +31,15 @@ function BookCard({ userBook }: BookCardProps) {
 
   return (
     <Link href={`/book/${userBook.id}`} className="block">
-      <div className="pixel-card p-3 h-full flex flex-col">
+      <div className="pixel-card p-2 sm:p-3 h-full flex flex-col">
         {/* Cover image */}
-        <div className="relative w-full aspect-[2/3] mb-3 bg-cream-dark border-2 border-brown overflow-hidden">
+        <div className="relative w-full aspect-[2/3] mb-2 sm:mb-3 bg-cream-dark border-2 border-brown overflow-hidden">
           {book.cover_url ? (
             <Image
               src={book.cover_url}
               alt={book.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              sizes="(max-width: 640px) 33vw, (max-width: 1024px) 25vw, 20vw"
               className="object-cover"
             />
           ) : (
@@ -60,7 +60,7 @@ function BookCard({ userBook }: BookCardProps) {
 
         {/* Book info */}
         <div className="flex-1 flex flex-col min-w-0">
-          <h3 className="text-sm font-bold text-brown line-clamp-2 mb-1 leading-tight">
+          <h3 className="text-xs sm:text-sm font-bold text-brown line-clamp-2 mb-1 leading-tight">
             {book.title}
           </h3>
           <p className="text-xs text-brown-lighter truncate mb-2">

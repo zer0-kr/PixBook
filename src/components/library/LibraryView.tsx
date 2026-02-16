@@ -202,7 +202,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-4">
             {displayedBooks.map((userBook) => (
               <BookCard key={userBook.id} userBook={userBook} />
             ))}
