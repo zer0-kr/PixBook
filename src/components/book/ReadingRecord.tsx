@@ -5,6 +5,7 @@ import { PixelButton, StarRating } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
+import { logError } from "@/lib/logger";
 import UnlockAnimation from "@/components/characters/UnlockAnimation";
 import type { UserBook, ReadingStatus, Character } from "@/types";
 
@@ -91,7 +92,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
     };
   }, []);
 
-  // Recalculate tower height when status changes to completed
+  // Recalculate tower height when status changes to completed (atomic RPC)
   const recalculateTowerHeight = useCallback(async () => {
     try {
       const supabase = createClient();
@@ -100,42 +101,19 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
       } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch all completed user_books with page count
-      const { data: completedBooks } = await supabase
-        .from("user_books")
-        .select("book:books(page_count)")
-        .eq("user_id", user.id)
-        .eq("reading_status", "completed");
-
-      if (!completedBooks) return;
-
-      let totalPages = 0;
-      let totalBooks = 0;
-
-      for (const row of completedBooks) {
-        totalBooks++;
-        const book = row.book as unknown;
-        if (book && typeof book === "object" && "page_count" in book) {
-          totalPages += (book as { page_count: number }).page_count || 0;
-        }
-      }
-
-      const towerHeight = totalPages * 0.06;
-
-      // Update profile
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          tower_height_cm: towerHeight,
-          total_books_completed: totalBooks,
-          total_pages_read: totalPages,
-        })
-        .eq("id", user.id);
+      const { data, error } = await supabase.rpc("recalculate_tower_height", {
+        p_user_id: user.id,
+      });
 
       if (error) {
-        console.error("Error updating tower height:", error);
+        logError("Error recalculating tower height:", error);
         return;
       }
+
+      const result = data?.[0];
+      if (!result) return;
+
+      const towerHeight = Number(result.tower_height);
 
       // Check for newly unlocked characters
       const newlyUnlocked = await checkAndUnlockCharacters(
@@ -149,7 +127,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         setShowUnlockIndex(0);
       }
     } catch (err) {
-      console.error("Error recalculating tower:", err);
+      logError("Error recalculating tower:", err);
     }
   }, []);
 

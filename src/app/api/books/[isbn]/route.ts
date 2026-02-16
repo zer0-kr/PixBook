@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { authenticateApiRequest } from "@/lib/api/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 const MOCK_LOOKUP_RESPONSE: AladinSearchResponse = {
@@ -40,10 +41,18 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ isbn: string }> }
 ) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await authenticateApiRequest();
+  if (auth.response) return auth.response;
+
+  const { allowed } = checkRateLimit(`isbn:${auth.user.id}`, {
+    limit: 30,
+    windowSeconds: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
   }
 
   const { isbn } = await params;
@@ -65,14 +74,19 @@ export async function GET(
   const ttbKey = process.env.ALADIN_TTB_KEY;
 
   if (!ttbKey) {
-    // Return mock data for development
-    return NextResponse.json({
-      ...MOCK_LOOKUP_RESPONSE,
-      item: MOCK_LOOKUP_RESPONSE.item.map((item) => ({
-        ...item,
-        isbn13: isbn,
-      })),
-    });
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json({
+        ...MOCK_LOOKUP_RESPONSE,
+        item: MOCK_LOOKUP_RESPONSE.item.map((item) => ({
+          ...item,
+          isbn13: isbn,
+        })),
+      });
+    }
+    return NextResponse.json(
+      { error: "Book service temporarily unavailable" },
+      { status: 503 }
+    );
   }
 
   try {

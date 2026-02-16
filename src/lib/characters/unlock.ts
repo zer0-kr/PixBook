@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Character } from "@/types";
+import { logError } from "@/lib/logger";
 
 /**
  * Check which characters can be unlocked at the given tower height,
@@ -20,7 +21,7 @@ export async function checkAndUnlockCharacters(
     .order("unlock_height_cm", { ascending: true });
 
   if (charError || !allUnlockable) {
-    console.error("Error fetching unlockable characters:", charError);
+    logError("Error fetching unlockable characters:", charError);
     return [];
   }
 
@@ -31,7 +32,7 @@ export async function checkAndUnlockCharacters(
     .eq("user_id", userId);
 
   if (ucError) {
-    console.error("Error fetching user characters:", ucError);
+    logError("Error fetching user characters:", ucError);
     return [];
   }
 
@@ -48,7 +49,7 @@ export async function checkAndUnlockCharacters(
     return [];
   }
 
-  // 4. INSERT new entries into user_characters
+  // 4. UPSERT new entries into user_characters (prevents duplicate insert race condition)
   const insertRows = newlyUnlockable.map((c: Character) => ({
     user_id: userId,
     character_id: c.id,
@@ -57,10 +58,10 @@ export async function checkAndUnlockCharacters(
 
   const { error: insertError } = await supabase
     .from("user_characters")
-    .insert(insertRows);
+    .upsert(insertRows, { onConflict: "user_id,character_id", ignoreDuplicates: true });
 
   if (insertError) {
-    console.error("Error inserting user characters:", insertError);
+    logError("Error inserting user characters:", insertError);
     return [];
   }
 
@@ -69,45 +70,20 @@ export async function checkAndUnlockCharacters(
 
 /**
  * Set a character as the user's active character.
- * Deactivates any previously active character first.
+ * Uses an atomic RPC call to prevent inconsistent state.
  */
 export async function setActiveCharacter(
   supabase: SupabaseClient,
   userId: string,
   characterId: string
 ): Promise<boolean> {
-  // Deactivate all current active characters
-  const { error: deactivateError } = await supabase
-    .from("user_characters")
-    .update({ is_active: false })
-    .eq("user_id", userId)
-    .eq("is_active", true);
+  const { error } = await supabase.rpc("set_active_character", {
+    p_user_id: userId,
+    p_character_id: characterId,
+  });
 
-  if (deactivateError) {
-    console.error("Error deactivating characters:", deactivateError);
-    return false;
-  }
-
-  // Activate the selected character
-  const { error: activateError } = await supabase
-    .from("user_characters")
-    .update({ is_active: true })
-    .eq("user_id", userId)
-    .eq("character_id", characterId);
-
-  if (activateError) {
-    console.error("Error activating character:", activateError);
-    return false;
-  }
-
-  // Update the profile's active_character_id
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ active_character_id: characterId })
-    .eq("id", userId);
-
-  if (profileError) {
-    console.error("Error updating profile active character:", profileError);
+  if (error) {
+    logError("Error setting active character:", error);
     return false;
   }
 

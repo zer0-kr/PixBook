@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { PixelButton } from "@/components/ui";
+import { logError } from "@/lib/logger";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -10,7 +11,7 @@ interface ErrorProps {
 
 export default function MainError({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error("Page error:", error);
+    logError("Page error:", error);
   }, [error]);
 
   return (

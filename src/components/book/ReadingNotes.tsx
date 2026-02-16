@@ -6,6 +6,13 @@ import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import type { ReadingNote } from "@/types";
 
+function parsePageNumber(value: string): number | null {
+  if (!value.trim()) return null;
+  const parsed = parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed < 1) return null;
+  return parsed;
+}
+
 interface ReadingNotesProps {
   userBookId: string;
   initialNotes: ReadingNote[];
@@ -47,7 +54,7 @@ export default function ReadingNotes({
         .insert({
           user_book_id: userBookId,
           content: newContent.trim(),
-          page_number: newPageNumber ? parseInt(newPageNumber, 10) : null,
+          page_number: parsePageNumber(newPageNumber),
         })
         .select()
         .single();
@@ -88,7 +95,7 @@ export default function ReadingNotes({
           .from("reading_notes")
           .update({
             content: editContent.trim(),
-            page_number: editPageNumber ? parseInt(editPageNumber, 10) : null,
+            page_number: parsePageNumber(editPageNumber),
           })
           .eq("id", noteId);
 
@@ -100,9 +107,7 @@ export default function ReadingNotes({
               ? {
                   ...n,
                   content: editContent.trim(),
-                  page_number: editPageNumber
-                    ? parseInt(editPageNumber, 10)
-                    : null,
+                  page_number: parsePageNumber(editPageNumber),
                 }
               : n
           )

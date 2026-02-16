@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { authenticateApiRequest } from "@/lib/api/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 interface ExportRow {
   제목: string;
@@ -26,13 +28,18 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const auth = await authenticateApiRequest();
+  if (auth.response) return auth.response;
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const { allowed } = checkRateLimit(`export:${auth.user.id}`, {
+    limit: 5,
+    windowSeconds: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
   }
 
   const format = request.nextUrl.searchParams.get("format") ?? "json";
@@ -45,10 +52,11 @@ export async function GET(request: NextRequest) {
   }
 
   // Fetch all user_books with book data
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("user_books")
     .select("*, book:books(*)")
-    .eq("user_id", user.id)
+    .eq("user_id", auth.user.id)
     .order("created_at", { ascending: false });
 
   if (error) {

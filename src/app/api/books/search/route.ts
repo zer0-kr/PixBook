@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { authenticateApiRequest } from "@/lib/api/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 const MOCK_SEARCH_RESPONSE: AladinSearchResponse = {
@@ -46,10 +47,18 @@ const MOCK_SEARCH_RESPONSE: AladinSearchResponse = {
 };
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await authenticateApiRequest();
+  if (auth.response) return auth.response;
+
+  const { allowed } = checkRateLimit(`search:${auth.user.id}`, {
+    limit: 30,
+    windowSeconds: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429 }
+    );
   }
 
   const { searchParams } = request.nextUrl;
@@ -74,11 +83,16 @@ export async function GET(request: NextRequest) {
   const ttbKey = process.env.ALADIN_TTB_KEY;
 
   if (!ttbKey) {
-    // Return mock data for development
-    return NextResponse.json({
-      ...MOCK_SEARCH_RESPONSE,
-      query,
-    });
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json({
+        ...MOCK_SEARCH_RESPONSE,
+        query,
+      });
+    }
+    return NextResponse.json(
+      { error: "Book service temporarily unavailable" },
+      { status: 503 }
+    );
   }
 
   try {

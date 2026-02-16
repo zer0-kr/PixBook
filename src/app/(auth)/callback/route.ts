@@ -6,11 +6,15 @@ export async function GET(request: Request) {
   const code = searchParams.get("code");
 
   if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    try {
+      const supabase = await createClient();
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
-      return NextResponse.redirect(`${origin}/library`);
+      if (!error) {
+        return NextResponse.redirect(`${origin}/library`);
+      }
+    } catch {
+      // Fall through to login redirect
     }
   }
 
