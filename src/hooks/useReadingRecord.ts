@@ -96,7 +96,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !mountedRef.current) return;
 
       const { data, error } = await supabase.rpc("recalculate_tower_height", {
         p_user_id: user.id,
@@ -119,7 +119,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         towerHeight
       );
 
-      if (newlyUnlocked.length > 0) {
+      if (newlyUnlocked.length > 0 && mountedRef.current) {
         setUnlockedCharacters(newlyUnlocked);
         setShowUnlockIndex(0);
       }
