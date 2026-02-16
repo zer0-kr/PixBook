@@ -65,6 +65,28 @@ export async function checkAndUnlockCharacters(
     return [];
   }
 
+  // 5. Auto-set active character if none is set
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("active_character_id")
+    .eq("id", userId)
+    .single();
+
+  if (!currentProfile?.active_character_id) {
+    const firstCharId = allUnlockable[0].id;
+
+    await supabase
+      .from("user_characters")
+      .update({ is_active: true })
+      .eq("user_id", userId)
+      .eq("character_id", firstCharId);
+
+    await supabase
+      .from("profiles")
+      .update({ active_character_id: firstCharId })
+      .eq("id", userId);
+  }
+
   return newlyUnlockable as Character[];
 }
 
