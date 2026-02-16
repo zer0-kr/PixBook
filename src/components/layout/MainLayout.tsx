@@ -15,7 +15,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
         <Sidebar />
 
         {/* Main content area */}
-        <main className="flex-1 md:ml-60 pb-16 md:pb-0">
+        <main className="flex-1 md:ml-60 pb-16 md:pb-0 overflow-x-hidden">
           {children}
         </main>
 

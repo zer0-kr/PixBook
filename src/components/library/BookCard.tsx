@@ -30,7 +30,7 @@ function BookCard({ userBook }: BookCardProps) {
   if (!book) return null;
 
   return (
-    <Link href={`/book/${userBook.id}`} className="block">
+    <Link href={`/book/${userBook.id}`} className="block min-w-0">
       <div className="pixel-card p-2 sm:p-3 h-full flex flex-col">
         {/* Cover image */}
         <div className="relative w-full aspect-[2/3] mb-2 sm:mb-3 bg-cream-dark border-2 border-brown overflow-hidden">
