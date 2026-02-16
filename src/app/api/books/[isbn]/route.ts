@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiRequest } from "@/lib/api/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 export const revalidate = 86400; // 24 hours cache
@@ -109,7 +110,7 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Aladin lookup API error:", error);
+    logError("Aladin lookup API error:", error);
     return NextResponse.json(
       { error: "Failed to lookup book" },
       { status: 500 }

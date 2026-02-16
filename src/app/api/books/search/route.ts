@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateApiRequest } from "@/lib/api/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 export async function GET(request: NextRequest) {
@@ -20,8 +21,8 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = request.nextUrl;
   const query = searchParams.get("query");
-  const page = searchParams.get("page") || "1";
-  const maxResults = searchParams.get("maxResults") || "20";
+  const page = String(Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1));
+  const maxResults = String(Math.min(50, Math.max(1, parseInt(searchParams.get("maxResults") || "20", 10) || 20)));
 
   if (!query) {
     return NextResponse.json(
@@ -119,7 +120,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Aladin search API error:", error);
+    logError("Aladin search API error:", error);
     return NextResponse.json(
       { error: "Failed to search books" },
       { status: 500 }

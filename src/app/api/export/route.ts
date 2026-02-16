@@ -15,7 +15,7 @@ interface ExportRow {
 }
 
 function escapeCsvFormula(str: string): string {
-  if (/^[=+\-@]/.test(str)) return `'${str}`;
+  if (/^[=+\-@\t\r]/.test(str)) return `'${str}`;
   return str;
 }
 
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
           const raw = value === null || value === undefined ? "" : String(value);
           const str = escapeCsvFormula(raw);
           // Escape quotes and wrap in quotes if contains comma, quote, or newline
-          if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\t") || str.includes("\r")) {
             return `"${str.replace(/"/g, '""')}"`;
           }
           return str;

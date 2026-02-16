@@ -185,6 +185,7 @@ export default function ReadingNotes({
                 placeholder="메모를 입력하세요..."
                 className="pixel-input w-full text-sm text-brown resize-none"
                 rows={3}
+                maxLength={2000}
               />
             </div>
             <div>
@@ -246,6 +247,7 @@ export default function ReadingNotes({
                     onChange={(e) => setEditContent(e.target.value)}
                     className="pixel-input w-full text-sm text-brown resize-none"
                     rows={3}
+                    maxLength={2000}
                   />
                   <input
                     type="number"

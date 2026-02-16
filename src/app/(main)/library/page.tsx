@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/logger";
 import { Header } from "@/components/layout";
 import { LibraryView } from "@/components/library";
 import type { UserBook } from "@/types";
@@ -22,7 +23,8 @@ export default async function LibraryPage() {
     .limit(200);
 
   if (error) {
-    console.error("Error fetching user books:", error);
+    logError("Error fetching user books:", error);
+    throw error;
   }
 
   const userBooks: UserBook[] = (data ?? []).map((row) => ({

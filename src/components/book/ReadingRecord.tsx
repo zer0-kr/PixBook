@@ -53,10 +53,11 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
   const { toast } = useToast();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingUpdatesRef = useRef<Partial<UserBook> | null>(null);
 
-  // Debounced save
+  // Save changes, returns true on success
   const saveChanges = useCallback(
-    async (updates: Partial<UserBook>) => {
+    async (updates: Partial<UserBook>): Promise<boolean> => {
       setIsSaving(true);
       try {
         const supabase = createClient();
@@ -68,8 +69,10 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         if (error) throw error;
 
         onUpdate(updates);
+        return true;
       } catch {
         toast("error", "저장에 실패했습니다");
+        return false;
       } finally {
         setIsSaving(false);
       }
@@ -79,24 +82,30 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
   const debouncedSave = useCallback(
     (updates: Partial<UserBook>) => {
+      pendingUpdatesRef.current = updates;
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
       debounceRef.current = setTimeout(() => {
+        pendingUpdatesRef.current = null;
         saveChanges(updates);
       }, 800);
     },
     [saveChanges]
   );
 
-  // Cleanup debounce on unmount
+  // Flush pending debounced save on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
+      if (pendingUpdatesRef.current) {
+        saveChanges(pendingUpdatesRef.current);
+        pendingUpdatesRef.current = null;
+      }
     };
-  }, []);
+  }, [saveChanges]);
 
   // Recalculate tower height when status changes to completed (atomic RPC)
   const recalculateTowerHeight = useCallback(async () => {
@@ -139,6 +148,10 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
   const handleStatusChange = useCallback(
     async (newStatus: ReadingStatus) => {
+      const prevStatus = status;
+      const prevStartDate = startDate;
+      const prevEndDate = endDate;
+
       setStatus(newStatus);
 
       const updates: Partial<UserBook> = {
@@ -159,7 +172,15 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         updates.end_date = today;
       }
 
-      await saveChanges(updates);
+      const success = await saveChanges(updates);
+
+      if (!success) {
+        // Rollback optimistic state on failure
+        setStatus(prevStatus);
+        setStartDate(prevStartDate);
+        setEndDate(prevEndDate);
+        return;
+      }
 
       // Recalculate tower when completed
       if (newStatus === "completed") {
@@ -167,7 +188,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         toast("success", "완독을 축하합니다! 탑이 높아졌어요!");
       }
     },
-    [startDate, endDate, saveChanges, recalculateTowerHeight, toast]
+    [status, startDate, endDate, saveChanges, recalculateTowerHeight, toast]
   );
 
   const handleRatingChange = useCallback(

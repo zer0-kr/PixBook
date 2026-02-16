@@ -31,6 +31,12 @@ export function checkRateLimit(
     for (const [k, v] of store) {
       if (now >= v.resetAt) store.delete(k);
     }
+    // Hard cap: if still over limit after eviction, drop oldest entries
+    if (store.size > MAX_STORE_SIZE) {
+      const sorted = [...store.entries()].sort((a, b) => a[1].resetAt - b[1].resetAt);
+      const toDelete = sorted.slice(0, store.size - MAX_STORE_SIZE);
+      for (const [k] of toDelete) store.delete(k);
+    }
   }
 
   const entry = store.get(key);
