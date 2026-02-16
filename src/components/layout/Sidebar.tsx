@@ -25,7 +25,7 @@ export default function Sidebar() {
     <aside className="hidden md:flex fixed left-0 top-0 z-40 h-full w-60 flex-col border-r-3 border-brown bg-cream-dark">
       {/* Logo */}
       <div className="border-b-3 border-brown p-4">
-        <h1 className="font-pixel text-xs text-brown">북적북적</h1>
+        <h1 className="font-pixel text-xs text-brown">픽북</h1>
         <p className="mt-1 text-xs text-brown-lighter">나만의 독서 타워</p>
       </div>
 

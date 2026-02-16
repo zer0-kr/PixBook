@@ -65,7 +65,7 @@ export default function LoginPage() {
           {"[ LOGIN ]"}
         </h1>
         <p className="text-sm text-brown-light">
-          북적북적에 오신 것을 환영합니다!
+          픽북에 오신 것을 환영합니다!
         </p>
       </div>
 

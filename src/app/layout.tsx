@@ -28,7 +28,7 @@ const galmuri = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "북적북적 - 나만의 독서 타워",
+  title: "픽북 - 나만의 독서 타워",
   description: "책을 읽고, 탑을 쌓고, 캐릭터를 모으세요!",
 };
 

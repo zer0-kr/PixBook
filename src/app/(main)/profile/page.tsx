@@ -5,7 +5,7 @@ import { ProfilePageView } from "@/components/profile";
 import type { Profile, Character } from "@/types";
 
 export const metadata = {
-  title: "프로필 | 북적북적",
+  title: "프로필 | 픽북",
   description: "닉네임 변경, 독서 현황 확인, 데이터 내보내기 등 나의 계정을 관리하세요.",
 };
 

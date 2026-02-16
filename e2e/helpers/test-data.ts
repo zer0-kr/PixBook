@@ -9,7 +9,7 @@ export const UI_TEXT = {
   loginHeader: "[ LOGIN ]",
   loginButton: "로그인",
   loginLoading: "로그인 중...",
-  welcomeMessage: "북적북적에 오신 것을 환영합니다!",
+  welcomeMessage: "픽북에 오신 것을 환영합니다!",
 
   // Library
   libraryHeader: "서재",

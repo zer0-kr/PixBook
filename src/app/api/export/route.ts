@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse(JSON.stringify(rows, null, 2), {
           headers: {
             "Content-Type": "application/json; charset=utf-8",
-            "Content-Disposition": `attachment; filename="booklog-export-${new Date().toISOString().split("T")[0]}.json"`,
+            "Content-Disposition": `attachment; filename="pixbook-export-${new Date().toISOString().split("T")[0]}.json"`,
           },
         });
       }
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(csvContent, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="booklog-export-${new Date().toISOString().split("T")[0]}.csv"`,
+          "Content-Disposition": `attachment; filename="pixbook-export-${new Date().toISOString().split("T")[0]}.csv"`,
         },
       });
     },

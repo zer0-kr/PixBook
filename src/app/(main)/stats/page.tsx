@@ -5,7 +5,7 @@ import { StatsPageView } from "@/components/stats";
 import type { Profile, UserBook, ReadingSession } from "@/types";
 
 export const metadata = {
-  title: "통계 | 북적북적",
+  title: "통계 | 픽북",
   description: "월별 완독 수, 장르 분포, 독서 캘린더로 나의 독서 현황을 한눈에 확인하세요.",
 };
 
