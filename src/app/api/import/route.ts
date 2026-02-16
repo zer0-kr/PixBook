@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
+import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import type { ReadingStatus } from "@/types";
 
 interface ImportRowInput {
@@ -210,9 +211,22 @@ export async function POST(request: NextRequest) {
       }
 
       // Recalculate tower stats
-      await auth.supabase.rpc("recalculate_tower_height", {
-        p_user_id: auth.user.id,
-      });
+      const { data: towerData } = await auth.supabase.rpc(
+        "recalculate_tower_height",
+        { p_user_id: auth.user.id }
+      );
+
+      // Unlock characters based on new tower height
+      const towerResult = (
+        towerData as { tower_height: number }[] | null
+      )?.[0];
+      if (towerResult) {
+        await checkAndUnlockCharacters(
+          auth.supabase,
+          auth.user.id,
+          Number(towerResult.tower_height)
+        );
+      }
 
       return NextResponse.json({
         imported,

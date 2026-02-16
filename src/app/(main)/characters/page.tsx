@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
+import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import Header from "@/components/layout/Header";
 import CharacterPageView from "@/components/characters/CharacterPageView";
 import type { Character, UserCharacter, Profile } from "@/types";
@@ -33,13 +34,34 @@ export default async function CharactersPage() {
       supabase.from("profiles").select("*").eq("id", user.id).single(),
     ]);
 
+  // Catch-up: unlock characters that should have been unlocked (e.g. CSV import)
+  const towerHeightCm = Number(profile?.tower_height_cm ?? 0);
+  const unlockedIds = new Set(
+    (userCharacters ?? []).map((uc) => (uc as UserCharacter).character_id)
+  );
+  const hasUnlockable = (characters ?? []).some(
+    (c) =>
+      (c as Character).unlock_height_cm <= towerHeightCm &&
+      !unlockedIds.has((c as Character).id)
+  );
+
+  let finalUserCharacters = userCharacters;
+  if (hasUnlockable) {
+    await checkAndUnlockCharacters(supabase, user.id, towerHeightCm);
+    const { data: refreshed } = await supabase
+      .from("user_characters")
+      .select("*, character:characters(*)")
+      .eq("user_id", user.id);
+    finalUserCharacters = refreshed;
+  }
+
   return (
     <>
       <Header title="캐릭터 도감" />
       <div className="p-4 md:p-6">
         <CharacterPageView
           characters={(characters as Character[]) ?? []}
-          userCharacters={(userCharacters as UserCharacter[]) ?? []}
+          userCharacters={(finalUserCharacters as UserCharacter[]) ?? []}
           profile={profile as Profile}
         />
       </div>
