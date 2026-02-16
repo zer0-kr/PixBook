@@ -176,7 +176,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
   const handleRatingChange = useCallback(
     (newRating: number) => {
       setRating(newRating);
-      debouncedSave({ rating: newRating });
+      debouncedSave({ rating: newRating || null });
     },
     [debouncedSave]
   );
