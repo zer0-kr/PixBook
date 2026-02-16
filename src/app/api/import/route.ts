@@ -45,6 +45,19 @@ function isValidDate(d: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(d);
 }
 
+function computeCreatedAt(
+  csvDate: string,
+  rowIndex: number,
+  baseTime: number
+): string {
+  if (isValidDate(csvDate)) {
+    const d = new Date(csvDate + "T00:00:00Z");
+    d.setSeconds(rowIndex);
+    return d.toISOString();
+  }
+  return new Date(baseTime + rowIndex * 1000).toISOString();
+}
+
 export const maxDuration = 30;
 
 export async function POST(request: NextRequest) {
@@ -85,7 +98,7 @@ export async function POST(request: NextRequest) {
           }
           return true;
         })
-        .map((row) => ({
+        .map((row, index) => ({
           isbn13: generateIsbn(row.title, row.author),
           title: row.title,
           author: row.author || "알 수 없음",
@@ -94,6 +107,8 @@ export async function POST(request: NextRequest) {
           rating: mapRating(row.rating),
           startDate: isValidDate(row.startDate) ? row.startDate : null,
           endDate: isValidDate(row.endDate) ? row.endDate : null,
+          createdAt: row.createdAt,
+          rowIndex: index,
         }));
 
       if (prepared.length === 0) {
@@ -153,6 +168,7 @@ export async function POST(request: NextRequest) {
       );
 
       // Step 4: Bulk insert new user_books only (deduplicate by book_id)
+      const baseTime = Date.now();
       const seenBookIds = new Set<string>();
       const newUserBooks = prepared
         .map((p) => {
@@ -171,6 +187,7 @@ export async function POST(request: NextRequest) {
             rating: p.rating,
             start_date: p.startDate,
             end_date: p.endDate,
+            created_at: computeCreatedAt(p.createdAt, p.rowIndex, baseTime),
           };
         })
         .filter(
