@@ -67,6 +67,9 @@ export const UI_TEXT = {
   nicknameEmpty: "닉네임을 입력해주세요",
   csvDownload: "CSV 다운로드",
   jsonDownload: "JSON 다운로드",
+  dataImport: "데이터 가져오기",
+  importButton: "CSV 파일 선택",
+  importConfirm: "가져오기",
   logout: "로그아웃",
 
   // Pages
