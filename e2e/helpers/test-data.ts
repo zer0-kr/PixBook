@@ -74,6 +74,9 @@ export const UI_TEXT = {
   statsHeader: "통계",
   charactersHeader: "캐릭터 도감",
 
+  // Google OAuth
+  googleLoginButton: "Google로 로그인",
+
   // Signup
   signupHeader: "[ SIGNUP ]",
   signupButton: "회원가입",
