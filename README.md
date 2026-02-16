@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 픽북 (PickBook)
 
-## Getting Started
+**나만의 독서 타워**
 
-First, run the development server:
+책을 읽고 기록하면 타워가 쌓이고, 캐릭터를 수집하는 게이미피케이션 독서 앱.
+알라딘 API 기반 한국어 독서 기록 서비스입니다.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+[pickbook.vercel.app](https://book-log-khaki.vercel.app)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 주요 기능
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 서재 관리
 
-## Learn More
+- 알라딘 도서 검색 및 등록
+- 독서 상태 추적 (읽고 싶은 / 읽는 중 / 다 읽은)
+- 별점 및 한줄평 기록
+- 북적북적 CSV 임포트
 
-To learn more about Next.js, take a look at the following resources:
+### 독서 타워
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- 읽은 페이지가 타워 높이로 변환 (0.06cm/페이지)
+- cm → m → km 마일스톤 달성 시스템
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 캐릭터 수집
 
-## Deploy on Vercel
+- 56종 픽셀아트 캐릭터
+- 4단계 레어리티: Common / Rare / Epic / Legendary
+- 타워 높이 기반 해금
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 독서 통계
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 월별 독서량 추이
+- 장르 분포
+- 독서 캘린더 히트맵
+
+---
+
+## 기술 스택
+
+| 영역 | 기술 |
+|------|------|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
+| Backend / DB | Supabase (PostgreSQL + Auth + RLS) |
+| External API | 알라딘 TTB API |
+| Testing | Playwright E2E |
+| Deploy | Vercel |
+
