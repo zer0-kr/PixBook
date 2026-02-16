@@ -123,17 +123,19 @@ body {
 }
 
 /* Pixel Input */
-.pixel-input {
-  border: 3px solid #3D2C2E;
-  box-shadow: inset 2px 2px 0px rgba(61, 44, 46, 0.2);
-  background: white;
-  font-family: "Galmuri11", monospace;
-  padding: 8px 12px;
-  outline: none;
-}
+@layer base {
+  .pixel-input {
+    border: 3px solid #3D2C2E;
+    box-shadow: inset 2px 2px 0px rgba(61, 44, 46, 0.2);
+    background: white;
+    font-family: "Galmuri11", monospace;
+    padding: 8px 12px;
+    outline: none;
+  }
 
-.pixel-input:focus {
-  box-shadow: inset 2px 2px 0px rgba(61, 44, 46, 0.2), 0 0 0 2px #3498DB;
+  .pixel-input:focus {
+    box-shadow: inset 2px 2px 0px rgba(61, 44, 46, 0.2), 0 0 0 2px #3498DB;
+  }
 }
 
 /* Scrollbar Styling */
