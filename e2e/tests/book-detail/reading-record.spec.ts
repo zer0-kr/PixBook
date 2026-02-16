@@ -100,8 +100,8 @@ test.describe("독서 기록", () => {
     });
 
     // Stars 1-4 should be fully filled, star 5 should be hidden
-    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", "inset(0px 0px 0px 0px)", { timeout: 5000 });
-    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", "inset(0px 100% 0px 0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", "inset(0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", /inset\(0px 100%/, { timeout: 5000 });
   });
 
   test("반별(0.5 단위) 별점을 설정할 수 있다", async ({ page }) => {
@@ -123,11 +123,11 @@ test.describe("독서 기록", () => {
     });
 
     // 3rd star should be fully filled
-    await expect(page.getByTestId("star-filled-3")).toHaveCSS("clip-path", "inset(0px 0px 0px 0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-3")).toHaveCSS("clip-path", "inset(0px)", { timeout: 5000 });
     // 4th star should be half-filled
-    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", "inset(0px 50% 0px 0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", /inset\(0px 50%/, { timeout: 5000 });
     // 5th star should be hidden
-    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", "inset(0px 100% 0px 0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", /inset\(0px 100%/, { timeout: 5000 });
   });
 
   test("한 줄 감상을 작성할 수 있다", async ({ page }) => {
