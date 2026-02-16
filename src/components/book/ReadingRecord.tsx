@@ -70,7 +70,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
         if (error) throw error;
 
-        onUpdate(updates);
+        if (mountedRef.current) onUpdate(updates);
         return true;
       } catch {
         if (mountedRef.current) toast("error", "저장에 실패했습니다");
