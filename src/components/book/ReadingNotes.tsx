@@ -322,7 +322,7 @@ export default function ReadingNotes({
                     </div>
                   </div>
                   <div className="flex items-center gap-3 mt-2 text-xs text-brown-lighter">
-                    {note.page_number && (
+                    {note.page_number != null && (
                       <span>p.{note.page_number}</span>
                     )}
                     <span>

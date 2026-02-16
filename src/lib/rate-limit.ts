@@ -32,10 +32,14 @@ export function checkRateLimit(
       if (now >= v.resetAt) store.delete(k);
     }
     // Hard cap: if still over limit after eviction, drop oldest entries
+    // Map iterates in insertion order, so earliest-inserted entries are removed first
     if (store.size > MAX_STORE_SIZE) {
-      const sorted = [...store.entries()].sort((a, b) => a[1].resetAt - b[1].resetAt);
-      const toDelete = sorted.slice(0, store.size - MAX_STORE_SIZE);
-      for (const [k] of toDelete) store.delete(k);
+      let toRemove = store.size - MAX_STORE_SIZE;
+      for (const [k] of store) {
+        if (toRemove <= 0) break;
+        store.delete(k);
+        toRemove--;
+      }
     }
   }
 

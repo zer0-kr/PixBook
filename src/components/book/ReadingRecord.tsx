@@ -54,11 +54,13 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
   const { toast } = useToast();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingUpdatesRef = useRef<Partial<UserBook> | null>(null);
+  const mountedRef = useRef(true);
 
   // Save changes, returns true on success
+  // When called during unmount flush, mountedRef prevents setState on unmounted component
   const saveChanges = useCallback(
     async (updates: Partial<UserBook>): Promise<boolean> => {
-      setIsSaving(true);
+      if (mountedRef.current) setIsSaving(true);
       try {
         const supabase = createClient();
         const { error } = await supabase
@@ -71,10 +73,10 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         onUpdate(updates);
         return true;
       } catch {
-        toast("error", "저장에 실패했습니다");
+        if (mountedRef.current) toast("error", "저장에 실패했습니다");
         return false;
       } finally {
-        setIsSaving(false);
+        if (mountedRef.current) setIsSaving(false);
       }
     },
     [userBook.id, onUpdate, toast]
@@ -82,21 +84,23 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
 
   const debouncedSave = useCallback(
     (updates: Partial<UserBook>) => {
-      pendingUpdatesRef.current = updates;
+      pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
       debounceRef.current = setTimeout(() => {
+        const toSave = pendingUpdatesRef.current;
         pendingUpdatesRef.current = null;
-        saveChanges(updates);
+        if (toSave) saveChanges(toSave);
       }, 800);
     },
     [saveChanges]
   );
 
-  // Flush pending debounced save on unmount
+  // Flush pending debounced save on unmount (fire-and-forget; setState guarded by mountedRef)
   useEffect(() => {
     return () => {
+      mountedRef.current = false;
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }

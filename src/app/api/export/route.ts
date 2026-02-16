@@ -15,7 +15,7 @@ interface ExportRow {
 }
 
 function escapeCsvFormula(str: string): string {
-  if (/^[=+\-@\t\r]/.test(str)) return `'${str}`;
+  if (/^[=+\-@\t\r|!]/.test(str)) return `'${str}`;
   return str;
 }
 
