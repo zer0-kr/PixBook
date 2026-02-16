@@ -6,6 +6,7 @@ import type { Character, UserCharacter, Profile } from "@/types";
 
 export const metadata = {
   title: "캐릭터 도감 | 북적북적",
+  description: "책을 읽고 탑을 쌓아 새로운 캐릭터를 해금하세요. 일반부터 전설까지 다양한 캐릭터를 수집해보세요.",
 };
 
 export default async function CharactersPage() {

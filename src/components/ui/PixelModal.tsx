@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, type ReactNode } from "react";
+import { useEffect, useCallback, useRef, type ReactNode } from "react";
 
 interface PixelModalProps {
   isOpen: boolean;
@@ -15,6 +15,8 @@ export default function PixelModal({
   title,
   children,
 }: PixelModalProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -26,6 +28,14 @@ export default function PixelModal({
     if (isOpen) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+
+      // Focus first interactive element inside modal
+      requestAnimationFrame(() => {
+        const focusable = contentRef.current?.querySelector<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        focusable?.focus();
+      });
     }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
@@ -40,7 +50,7 @@ export default function PixelModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
+      aria-labelledby="modal-title"
     >
       {/* Overlay */}
       <div
@@ -50,10 +60,10 @@ export default function PixelModal({
       />
 
       {/* Modal content */}
-      <div className="pixel-border relative z-10 w-full max-w-lg bg-cream p-6">
+      <div ref={contentRef} className="pixel-border relative z-10 w-full max-w-lg bg-cream p-6">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between border-b-3 border-brown pb-3">
-          <h2 className="font-pixel text-sm text-brown">{title}</h2>
+          <h2 id="modal-title" className="font-pixel text-sm text-brown">{title}</h2>
           <button
             onClick={onClose}
             className="pixel-btn bg-pixel-red px-2 py-1 text-xs text-white"

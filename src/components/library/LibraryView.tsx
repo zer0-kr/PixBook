@@ -91,10 +91,12 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
   return (
     <div className="px-4 py-4">
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-2 mb-4 scrollbar-none">
+      <div className="flex gap-1 overflow-x-auto pb-2 mb-4 scrollbar-none" role="tablist" aria-label="독서 상태 필터">
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeTab === tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`pixel-btn whitespace-nowrap px-3 py-1.5 text-xs font-bold transition-colors ${
               activeTab === tab.key

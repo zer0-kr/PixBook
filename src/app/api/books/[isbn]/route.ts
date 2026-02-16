@@ -82,9 +82,13 @@ export async function GET(
           OptResult: "subInfo",
         });
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         const response = await fetch(
-          `https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?${searchParams.toString()}`
+          `https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?${searchParams.toString()}`,
+          { signal: controller.signal }
         );
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`Aladin API responded with status ${response.status}`);

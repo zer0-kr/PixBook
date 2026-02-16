@@ -127,10 +127,12 @@ export default function CharacterPageView({
       </PixelCard>
 
       {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="레어리티 필터">
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            role="tab"
+            aria-selected={activeTab === tab.key}
             onClick={() => setActiveTab(tab.key)}
             className={`pixel-btn px-3 py-1.5 text-xs font-bold transition-colors ${
               activeTab === tab.key
