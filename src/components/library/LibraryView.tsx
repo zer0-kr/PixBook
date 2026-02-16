@@ -8,6 +8,7 @@ import EmptyLibrary from "./EmptyLibrary";
 
 type TabKey = "all" | ReadingStatus;
 type SortKey = "newest" | "recent_read" | "title" | "author" | "rating";
+type ViewMode = "grid" | "list" | "cover";
 
 interface Tab {
   key: TabKey;
@@ -59,6 +60,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
   };
 
   const [sortBy, setSortBy] = useState<SortKey>("newest");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   const sortOptions = activeTab === "completed" ? COMPLETED_SORT_OPTIONS : DEFAULT_SORT_OPTIONS;
 
@@ -180,17 +182,57 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
         <p className="text-sm text-brown-lighter">
           {sortedBooks.length}권
         </p>
-        <select
-          value={effectiveSortBy}
-          onChange={(e) => setSortBy(e.target.value as SortKey)}
-          className="pixel-input px-2 py-1 text-xs text-brown bg-white"
-        >
-          {sortOptions.map((opt) => (
-            <option key={opt.key} value={opt.key}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          {/* View mode toggle */}
+          <div className="flex gap-0.5">
+            {([
+              { mode: "grid" as ViewMode, label: "그리드 뷰", icon: (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4" style={{ imageRendering: "pixelated" }}>
+                  <rect x="1" y="1" width="4" height="4" /><rect x="6" y="1" width="4" height="4" /><rect x="11" y="1" width="4" height="4" />
+                  <rect x="1" y="6" width="4" height="4" /><rect x="6" y="6" width="4" height="4" /><rect x="11" y="6" width="4" height="4" />
+                  <rect x="1" y="11" width="4" height="4" /><rect x="6" y="11" width="4" height="4" /><rect x="11" y="11" width="4" height="4" />
+                </svg>
+              )},
+              { mode: "list" as ViewMode, label: "리스트 뷰", icon: (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4" style={{ imageRendering: "pixelated" }}>
+                  <rect x="1" y="2" width="14" height="3" />
+                  <rect x="1" y="7" width="14" height="3" />
+                  <rect x="1" y="12" width="14" height="3" />
+                </svg>
+              )},
+              { mode: "cover" as ViewMode, label: "커버 뷰", icon: (
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4" style={{ imageRendering: "pixelated" }}>
+                  <rect x="1" y="1" width="6" height="6" /><rect x="9" y="1" width="6" height="6" />
+                  <rect x="1" y="9" width="6" height="6" /><rect x="9" y="9" width="6" height="6" />
+                </svg>
+              )},
+            ]).map(({ mode, label, icon }) => (
+              <button
+                key={mode}
+                aria-label={label}
+                onClick={() => setViewMode(mode)}
+                className={`pixel-btn p-1.5 transition-colors ${
+                  viewMode === mode
+                    ? "bg-pixel-blue text-white"
+                    : "bg-cream-dark text-brown hover:bg-cream-dark/80"
+                }`}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
+          <select
+            value={effectiveSortBy}
+            onChange={(e) => setSortBy(e.target.value as SortKey)}
+            className="pixel-input px-2 py-1 text-xs text-brown bg-white"
+          >
+            {sortOptions.map((opt) => (
+              <option key={opt.key} value={opt.key}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Book grid */}
@@ -202,11 +244,23 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-4">
-            {displayedBooks.map((userBook) => (
-              <BookCard key={userBook.id} userBook={userBook} />
-            ))}
-          </div>
+          {viewMode === "list" ? (
+            <div className="flex flex-col gap-2">
+              {displayedBooks.map((userBook) => (
+                <BookCard key={userBook.id} userBook={userBook} viewMode="list" />
+              ))}
+            </div>
+          ) : (
+            <div className={
+              viewMode === "cover"
+                ? "grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+                : "grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-4"
+            }>
+              {displayedBooks.map((userBook) => (
+                <BookCard key={userBook.id} userBook={userBook} viewMode={viewMode} />
+              ))}
+            </div>
+          )}
           {hasMore && <div ref={sentinelRef} className="h-1" />}
         </>
       )}
