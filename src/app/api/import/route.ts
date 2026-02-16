@@ -36,8 +36,9 @@ function mapStatus(row: ImportRowInput): ReadingStatus {
 
 function mapRating(rating: number): number | null {
   if (!rating || rating <= 0) return null;
-  const rounded = Math.round(rating);
-  return Math.max(1, Math.min(5, rounded));
+  // 0.5 단위로 반올림
+  const rounded = Math.round(rating * 2) / 2;
+  return Math.max(0.5, Math.min(5, rounded));
 }
 
 function isValidDate(d: string): boolean {

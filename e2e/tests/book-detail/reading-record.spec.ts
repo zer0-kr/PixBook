@@ -81,14 +81,14 @@ test.describe("독서 기록", () => {
     });
   });
 
-  test("별점을 설정할 수 있다", async ({ page }) => {
+  test("정수 별점을 설정할 수 있다", async ({ page }) => {
     await page.goto(`/book/${userBookId}`);
     await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
       timeout: 15000,
     });
 
-    // Click 4-star rating
-    await page.getByLabel("4점").click();
+    // Click right half of 4th star → 4점
+    await page.getByTestId("star-full-4").click({ force: true });
 
     // Wait for debounced save (800ms) + network
     await page.waitForTimeout(1500);
@@ -99,10 +99,35 @@ test.describe("독서 기록", () => {
       timeout: 15000,
     });
 
-    // Stars are <span> with role="button". Count filled stars (★) within the star group.
-    const starGroup = page.locator('[role="group"][aria-label="별점"]');
-    const filledStars = starGroup.locator('span:has-text("★")');
-    await expect(filledStars).toHaveCount(4, { timeout: 5000 });
+    // Stars 1-4 should be fully filled, star 5 should be hidden
+    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", "inset(0px 0px 0px 0px)", { timeout: 5000 });
+    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", "inset(0px 100% 0px 0px)", { timeout: 5000 });
+  });
+
+  test("반별(0.5 단위) 별점을 설정할 수 있다", async ({ page }) => {
+    await page.goto(`/book/${userBookId}`);
+    await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
+      timeout: 15000,
+    });
+
+    // Click left half of 4th star → 3.5점
+    await page.getByTestId("star-half-4").click({ force: true });
+
+    // Wait for debounced save (800ms) + network
+    await page.waitForTimeout(1500);
+
+    // Reload and verify persistence
+    await page.reload();
+    await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
+      timeout: 15000,
+    });
+
+    // 3rd star should be fully filled
+    await expect(page.getByTestId("star-filled-3")).toHaveCSS("clip-path", "inset(0px 0px 0px 0px)", { timeout: 5000 });
+    // 4th star should be half-filled
+    await expect(page.getByTestId("star-filled-4")).toHaveCSS("clip-path", "inset(0px 50% 0px 0px)", { timeout: 5000 });
+    // 5th star should be hidden
+    await expect(page.getByTestId("star-filled-5")).toHaveCSS("clip-path", "inset(0px 100% 0px 0px)", { timeout: 5000 });
   });
 
   test("한 줄 감상을 작성할 수 있다", async ({ page }) => {
