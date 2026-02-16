@@ -4,6 +4,7 @@ import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import { logError } from "@/lib/logger";
+import { SPINE_COLORS } from "@/lib/constants";
 import type { UserBook, ReadingStatus, Character } from "@/types";
 
 interface TowerHeightResult {
@@ -23,7 +24,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
   const [review, setReview] = useState(userBook.one_line_review ?? "");
   const [startDate, setStartDate] = useState(userBook.start_date ?? "");
   const [endDate, setEndDate] = useState(userBook.end_date ?? "");
-  const [spineColor, setSpineColor] = useState(userBook.spine_color ?? "#E74C3C");
+  const [spineColor, setSpineColor] = useState(userBook.spine_color ?? SPINE_COLORS[0]);
   const [isSaving, setIsSaving] = useState(false);
   const [unlockedCharacters, setUnlockedCharacters] = useState<Character[]>([]);
   const [showUnlockIndex, setShowUnlockIndex] = useState<number>(-1);

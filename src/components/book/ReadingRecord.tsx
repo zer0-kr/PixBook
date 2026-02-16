@@ -3,6 +3,7 @@
 import { PixelButton, StarRating } from "@/components/ui";
 import UnlockAnimation from "@/components/characters/UnlockAnimation";
 import { useReadingRecord } from "@/hooks/useReadingRecord";
+import { SPINE_COLORS } from "@/lib/constants";
 import type { UserBook, ReadingStatus } from "@/types";
 
 const STATUS_OPTIONS: { key: ReadingStatus; label: string; color: string }[] = [
@@ -10,19 +11,6 @@ const STATUS_OPTIONS: { key: ReadingStatus; label: string; color: string }[] = [
   { key: "reading", label: "읽는 중", color: "bg-status-reading text-white" },
   { key: "completed", label: "완독", color: "bg-status-completed text-white" },
   { key: "dropped", label: "중단", color: "bg-status-dropped text-white" },
-];
-
-const SPINE_COLORS = [
-  "#E74C3C", // red
-  "#3498DB", // blue
-  "#2ECC71", // green
-  "#F1C40F", // yellow
-  "#9B59B6", // purple
-  "#E67E22", // orange
-  "#FF6B9D", // pink
-  "#1ABC9C", // teal
-  "#3D2C2E", // brown
-  "#8B9DC3", // silver-blue
 ];
 
 interface ReadingRecordProps {
