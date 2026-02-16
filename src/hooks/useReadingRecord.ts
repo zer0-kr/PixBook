@@ -133,6 +133,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
       const prevStatus = status;
       const prevStartDate = startDate;
       const prevEndDate = endDate;
+      const prevRating = rating;
 
       setStatus(newStatus);
 
@@ -154,6 +155,12 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         updates.end_date = today;
       }
 
+      // Reset rating when leaving completed status
+      if (prevStatus === "completed" && newStatus !== "completed") {
+        setRating(0);
+        updates.rating = null;
+      }
+
       const success = await saveChanges(updates);
 
       if (!success) {
@@ -161,6 +168,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         setStatus(prevStatus);
         setStartDate(prevStartDate);
         setEndDate(prevEndDate);
+        setRating(prevRating);
         return;
       }
 
@@ -170,15 +178,16 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         toast("success", "완독을 축하합니다! 탑이 높아졌어요!");
       }
     },
-    [status, startDate, endDate, saveChanges, recalculateTowerHeight, toast]
+    [status, rating, startDate, endDate, saveChanges, recalculateTowerHeight, toast]
   );
 
   const handleRatingChange = useCallback(
     (newRating: number) => {
+      if (status !== "completed") return;
       setRating(newRating);
       debouncedSave({ rating: newRating || null });
     },
-    [debouncedSave]
+    [status, debouncedSave]
   );
 
   const handleReviewChange = useCallback(
@@ -232,9 +241,12 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
     }
   }, [showUnlockIndex, unlockedCharacters.length]);
 
+  const isRatingEditable = status === "completed";
+
   return {
     status,
     rating,
+    isRatingEditable,
     review,
     startDate,
     endDate,

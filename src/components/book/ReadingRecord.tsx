@@ -33,6 +33,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
     handleStartDateChange,
     handleEndDateChange,
     handleSpineColorChange,
+    isRatingEditable,
     unlockedCharacter,
     handleDismissUnlock,
   } = useReadingRecord({ userBook, onUpdate });
@@ -100,7 +101,16 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         <label className="block text-sm font-bold text-brown mb-2">
           평점
         </label>
-        <StarRating value={rating} onChange={handleRatingChange} size="lg" />
+        <StarRating
+          value={rating}
+          onChange={isRatingEditable ? handleRatingChange : undefined}
+          size="lg"
+        />
+        {!isRatingEditable && (
+          <p className="text-xs text-brown-lighter mt-1">
+            완독 후 평점을 남길 수 있습니다
+          </p>
+        )}
       </div>
 
       {/* One-line review */}
