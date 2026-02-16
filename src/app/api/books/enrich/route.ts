@@ -28,6 +28,10 @@ function normalizeTitleForSearch(rawTitle: string): string[] {
   l1 = l1.trim();
   if (l1) levels.push(l1);
 
+  // Level 1.5: strip all parenthetical content for cleaner search
+  const noParens = l1.replace(/\s*\([^)]*\)\s*/g, "").trim();
+  if (noParens && noParens !== l1) levels.push(noParens);
+
   // Level 2: drop subtitle after : or  -
   const subtitleIdx = Math.min(
     l1.indexOf(":") === -1 ? Infinity : l1.indexOf(":"),
@@ -63,7 +67,7 @@ function normalizeTitleForComparison(title: string): string {
 /** Split a compound author string by common Korean delimiters. */
 function splitAuthors(author: string): string[] {
   return author
-    .split(/[,·、]/)
+    .split(/[,·、|]/)
     .map((a) => a.replace(/\([^)]*\)/g, "").trim())
     .filter(Boolean);
 }
@@ -72,7 +76,7 @@ function splitAuthors(author: string): string[] {
 function normalizeAuthor(author: string): string {
   return author
     .replace(/\([^)]*\)/g, "")
-    .replace(/[,·、\s]/g, "")
+    .replace(/[,·、|\s]/g, "")
     .toLowerCase();
 }
 
