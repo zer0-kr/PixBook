@@ -13,6 +13,7 @@ import {
   type ImportRow,
   type ImportSummary,
 } from "@/lib/csv/parse-import";
+import EnrichmentProgress from "./EnrichmentProgress";
 import type { Profile, Character } from "@/types";
 
 interface ProfilePageViewProps {
@@ -280,6 +281,15 @@ export default function ProfilePageView({
             </div>
           </div>
         )}
+      </PixelCard>
+
+      {/* Cover Enrichment */}
+      <PixelCard hoverable={false}>
+        <h3 className="font-pixel text-xs text-brown mb-4">표지 보강</h3>
+        <p className="text-xs text-brown-lighter mb-3">
+          CSV로 가져온 책 중 표지가 없는 항목을 알라딘에서 검색하여 보강합니다.
+        </p>
+        <EnrichmentProgress />
       </PixelCard>
 
       {/* Data Export */}

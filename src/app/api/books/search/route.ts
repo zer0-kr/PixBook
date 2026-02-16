@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
-import { logError } from "@/lib/logger";
+import { searchAladin } from "@/lib/aladin/api";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 export async function GET(request: NextRequest) {
@@ -8,8 +8,8 @@ export async function GET(request: NextRequest) {
     async () => {
       const { searchParams } = request.nextUrl;
       const query = searchParams.get("query");
-      const page = String(Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1));
-      const maxResults = String(Math.min(50, Math.max(1, parseInt(searchParams.get("maxResults") || "20", 10) || 20)));
+      const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+      const maxResults = Math.min(50, Math.max(1, parseInt(searchParams.get("maxResults") || "20", 10) || 20));
 
       if (!query) {
         return NextResponse.json(
@@ -25,11 +25,8 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const ttbKey = process.env.ALADIN_TTB_KEY;
-
-      if (!ttbKey) {
+      if (!process.env.ALADIN_TTB_KEY) {
         if (process.env.NODE_ENV === "development") {
-          // Mock data only available in development
           const mockResponse: AladinSearchResponse = {
             version: "20131101",
             title: "알라딘 검색결과 (Mock)",
@@ -80,43 +77,23 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      try {
-        const params = new URLSearchParams({
-          TTBKey: ttbKey,
-          Query: query,
-          QueryType: "Keyword",
-          MaxResults: maxResults,
-          start: page,
-          Cover: "Big",
-          output: "js",
-          Version: "20131101",
-        });
+      const items = await searchAladin(query, { maxResults, page });
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        const response = await fetch(
-          `https://www.aladin.co.kr/ttb/api/ItemSearch.aspx?${params.toString()}`,
-          { signal: controller.signal }
-        );
-        clearTimeout(timeoutId);
+      const data: AladinSearchResponse = {
+        version: "20131101",
+        title: `알라딘 검색결과 - ${query}`,
+        link: "https://www.aladin.co.kr",
+        pubDate: new Date().toISOString(),
+        totalResults: items.length,
+        startIndex: page,
+        itemsPerPage: maxResults,
+        query,
+        searchCategoryId: 0,
+        searchCategoryName: "전체",
+        item: items,
+      };
 
-        if (!response.ok) {
-          throw new Error(`Aladin API responded with status ${response.status}`);
-        }
-
-        const text = await response.text();
-        // Aladin API returns JSON with trailing semicolons
-        const cleaned = text.replace(/;+$/, "");
-        const data: AladinSearchResponse = JSON.parse(cleaned);
-
-        return NextResponse.json(data);
-      } catch (error) {
-        logError("Aladin search API error:", error);
-        return NextResponse.json(
-          { error: "Failed to search books" },
-          { status: 500 }
-        );
-      }
+      return NextResponse.json(data);
     },
     { key: "search", limit: 30, windowSeconds: 60 }
   );
