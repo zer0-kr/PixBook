@@ -41,7 +41,7 @@ export default function BookTower({ completedBooks, zoom }: BookTowerProps) {
 
   // Oldest first → appears at bottom of column-reverse container.
   const sorted = [...completedBooks].sort(
-    (a, b) => new Date(a.end_date ?? a.updated_at).getTime() - new Date(b.end_date ?? b.updated_at).getTime(),
+    (a, b) => new Date(a.end_date ?? a.created_at).getTime() - new Date(b.end_date ?? b.created_at).getTime(),
   );
 
   return (

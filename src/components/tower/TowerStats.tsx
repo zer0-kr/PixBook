@@ -11,6 +11,7 @@ interface TowerStatsProps {
   totalBooksCompleted: number;
   totalPagesRead: number;
   activeCharacter: Character | null;
+  selectedYear: number | "all";
 }
 
 export default function TowerStats({
@@ -18,12 +19,15 @@ export default function TowerStats({
   totalBooksCompleted,
   totalPagesRead,
   activeCharacter,
+  selectedYear,
 }: TowerStatsProps) {
   const nextMilestone = getNextMilestone(totalHeightCm);
 
   return (
     <PixelCard className="flex flex-col gap-4" hoverable={false}>
-      <h2 className="font-pixel text-[10px] text-brown">타워 통계</h2>
+      <h2 className="font-pixel text-[10px] text-brown">
+        {selectedYear === "all" ? "타워 통계" : `${selectedYear}년 통계`}
+      </h2>
 
       {/* Stat rows */}
       <div className="grid grid-cols-2 gap-3">

@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { UserBook, Character } from "@/types";
+import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import PixelButton from "@/components/ui/PixelButton";
 import TowerScene from "./TowerScene";
 import TowerStats from "./TowerStats";
 
 interface TowerPageViewProps {
   completedBooks: UserBook[];
-  totalHeightCm: number;
-  totalBooksCompleted: number;
-  totalPagesRead: number;
   activeCharacter: Character | null;
 }
 
@@ -21,15 +19,37 @@ const DEFAULT_ZOOM = 1;
 
 export default function TowerPageView({
   completedBooks,
-  totalHeightCm,
-  totalBooksCompleted,
-  totalPagesRead,
   activeCharacter,
 }: TowerPageViewProps) {
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
+  const [selectedYear, setSelectedYear] = useState<number | "all">("all");
 
   const zoomIn = () => setZoom((z) => Math.min(MAX_ZOOM, z + ZOOM_STEP));
   const zoomOut = () => setZoom((z) => Math.max(MIN_ZOOM, z - ZOOM_STEP));
+
+  // Extract unique completion years (descending)
+  const years = useMemo(() => {
+    const s = new Set<number>();
+    for (const ub of completedBooks) {
+      if (ub.end_date) s.add(new Date(ub.end_date).getFullYear());
+    }
+    return Array.from(s).sort((a, b) => b - a);
+  }, [completedBooks]);
+
+  // Filter books by selected year
+  const filteredBooks = useMemo(() => {
+    if (selectedYear === "all") return completedBooks;
+    return completedBooks.filter(
+      (ub) => ub.end_date && new Date(ub.end_date).getFullYear() === selectedYear
+    );
+  }, [completedBooks, selectedYear]);
+
+  // Recalculate stats from filtered books
+  const { totalBooksCompleted, totalPagesRead, totalHeightCm } = useMemo(() => {
+    const books = filteredBooks.length;
+    const pages = filteredBooks.reduce((s, ub) => s + (ub.book?.page_count ?? 0), 0);
+    return { totalBooksCompleted: books, totalPagesRead: pages, totalHeightCm: pages * BASE_CM_PER_PAGE };
+  }, [filteredBooks]);
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:flex-row">
@@ -49,7 +69,7 @@ export default function TowerPageView({
         </div>
 
         <TowerScene
-          completedBooks={completedBooks}
+          completedBooks={filteredBooks}
           totalHeightCm={totalHeightCm}
           activeCharacter={activeCharacter}
           zoom={zoom}
@@ -58,11 +78,31 @@ export default function TowerPageView({
 
       {/* Stats sidebar */}
       <div className="w-full shrink-0 lg:w-72">
+        {/* Year filter tabs */}
+        <div className="mb-2 flex flex-wrap gap-1">
+          <button
+            className={`pixel-btn px-2 py-1 text-xs font-bold ${selectedYear === "all" ? "bg-pixel-blue text-white" : "bg-cream-dark text-brown"}`}
+            onClick={() => setSelectedYear("all")}
+          >
+            전체
+          </button>
+          {years.map((y) => (
+            <button
+              key={y}
+              className={`pixel-btn px-2 py-1 text-xs font-bold ${selectedYear === y ? "bg-pixel-blue text-white" : "bg-cream-dark text-brown"}`}
+              onClick={() => setSelectedYear(y)}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+
         <TowerStats
           totalHeightCm={totalHeightCm}
           totalBooksCompleted={totalBooksCompleted}
           totalPagesRead={totalPagesRead}
           activeCharacter={activeCharacter}
+          selectedYear={selectedYear}
         />
       </div>
     </div>
