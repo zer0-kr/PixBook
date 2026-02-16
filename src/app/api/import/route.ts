@@ -45,6 +45,8 @@ function isValidDate(d: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(d);
 }
 
+export const maxDuration = 30;
+
 export async function POST(request: NextRequest) {
   return withAuthAndRateLimit(
     async (auth) => {
@@ -72,80 +74,100 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      let imported = 0;
-      let skipped = 0;
       const errors: string[] = [];
 
-      for (const row of rows) {
-        if (!row.title) {
-          errors.push("제목 없는 행 건너뜀");
-          continue;
-        }
-
-        try {
-          const isbn13 = generateIsbn(row.title, row.author);
-
-          // Upsert book
-          const { data: book, error: bookError } = await auth.supabase
-            .from("books")
-            .upsert(
-              {
-                isbn13,
-                title: row.title,
-                author: row.author || "알 수 없음",
-                publisher: row.publisher || null,
-                page_count: 200,
-              },
-              { onConflict: "isbn13" }
-            )
-            .select("id")
-            .single();
-
-          if (bookError || !book) {
-            errors.push(`"${row.title}" 책 저장 실패`);
-            continue;
+      // Step 1: Prepare all rows in JS (no DB calls)
+      const prepared = rows
+        .filter((r) => {
+          if (!r.title) {
+            errors.push("제목 없는 행 건너뜀");
+            return false;
           }
+          return true;
+        })
+        .map((row) => ({
+          isbn13: generateIsbn(row.title, row.author),
+          title: row.title,
+          author: row.author || "알 수 없음",
+          publisher: row.publisher || null,
+          status: mapStatus(row),
+          rating: mapRating(row.rating),
+          startDate: isValidDate(row.startDate) ? row.startDate : null,
+          endDate: isValidDate(row.endDate) ? row.endDate : null,
+        }));
 
-          // Check if user already has this book
-          const { data: existing } = await auth.supabase
-            .from("user_books")
-            .select("id")
-            .eq("user_id", auth.user.id)
-            .eq("book_id", book.id)
-            .single();
+      if (prepared.length === 0) {
+        return NextResponse.json({ imported: 0, skipped: 0, errors });
+      }
 
-          if (existing) {
-            skipped++;
-            continue;
+      // Step 2: Bulk upsert all books + retrieve IDs
+      const { data: books, error: booksError } = await auth.supabase
+        .from("books")
+        .upsert(
+          prepared.map((p) => ({
+            isbn13: p.isbn13,
+            title: p.title,
+            author: p.author,
+            publisher: p.publisher,
+            page_count: 200,
+          })),
+          { onConflict: "isbn13" }
+        )
+        .select("id, isbn13");
+
+      if (booksError || !books) {
+        return NextResponse.json(
+          { error: "책 일괄 저장 실패", detail: booksError?.message },
+          { status: 500 }
+        );
+      }
+
+      const isbnToBookId = new Map(books.map((b) => [b.isbn13, b.id]));
+
+      // Step 3: Bulk check existing user_books
+      const { data: existingUbs } = await auth.supabase
+        .from("user_books")
+        .select("book_id")
+        .eq("user_id", auth.user.id);
+
+      const existingBookIds = new Set(
+        existingUbs?.map((ub) => ub.book_id) ?? []
+      );
+
+      // Step 4: Bulk insert new user_books only
+      const newUserBooks = prepared
+        .map((p) => {
+          const bookId = isbnToBookId.get(p.isbn13);
+          if (!bookId) {
+            errors.push(`"${p.title}" 책 ID 매칭 실패`);
+            return null;
           }
+          if (existingBookIds.has(bookId)) return null;
+          return {
+            user_id: auth.user.id,
+            book_id: bookId,
+            reading_status: p.status,
+            rating: p.rating,
+            start_date: p.startDate,
+            end_date: p.endDate,
+          };
+        })
+        .filter(
+          (ub): ub is NonNullable<typeof ub> => ub !== null
+        );
 
-          // Insert user_book
-          const readingStatus = mapStatus(row);
-          const rating = mapRating(row.rating);
-          const startDate = isValidDate(row.startDate)
-            ? row.startDate
-            : null;
-          const endDate = isValidDate(row.endDate) ? row.endDate : null;
+      const skipped = prepared.length - newUserBooks.length - errors.length;
 
-          const { error: ubError } = await auth.supabase
-            .from("user_books")
-            .insert({
-              user_id: auth.user.id,
-              book_id: book.id,
-              reading_status: readingStatus,
-              rating,
-              start_date: startDate,
-              end_date: endDate,
-            });
+      let imported = 0;
+      if (newUserBooks.length > 0) {
+        const { error: insertError } = await auth.supabase
+          .from("user_books")
+          .insert(newUserBooks);
 
-          if (ubError) {
-            errors.push(`"${row.title}" 독서 기록 저장 실패`);
-            continue;
-          }
-
-          imported++;
-        } catch {
-          errors.push(`"${row.title}" 처리 중 오류`);
+        if (insertError) {
+          errors.push(`독서 기록 일괄 저장 실패: ${insertError.message}`);
+        } else {
+          imported = newUserBooks.length;
         }
       }
 
