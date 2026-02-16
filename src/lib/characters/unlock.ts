@@ -89,25 +89,3 @@ export async function checkAndUnlockCharacters(
 
   return newlyUnlockable as Character[];
 }
-
-/**
- * Set a character as the user's active character.
- * Uses an atomic RPC call to prevent inconsistent state.
- */
-export async function setActiveCharacter(
-  supabase: SupabaseClient,
-  userId: string,
-  characterId: string
-): Promise<boolean> {
-  const { error } = await supabase.rpc("set_active_character", {
-    p_user_id: userId,
-    p_character_id: characterId,
-  });
-
-  if (error) {
-    logError("Error setting active character:", error);
-    return false;
-  }
-
-  return true;
-}

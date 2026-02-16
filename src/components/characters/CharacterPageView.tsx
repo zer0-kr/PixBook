@@ -4,8 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import { PixelCard, PixelProgressBar, PixelBadge } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { formatHeight } from "@/lib/tower/calculator";
-import { createClient } from "@/lib/supabase/client";
-import { setActiveCharacter } from "@/lib/characters/unlock";
+import { setActiveCharacterAction } from "@/lib/actions/character";
 import CharacterCard from "./CharacterCard";
 import type { Character, UserCharacter, Profile, CharacterRarity } from "@/types";
 
@@ -68,8 +67,7 @@ export default function CharacterPageView({
 
   const handleSelectCharacter = useCallback(
     async (characterId: string) => {
-      const supabase = createClient();
-      const ok = await setActiveCharacter(supabase, profile.id, characterId);
+      const ok = await setActiveCharacterAction(characterId);
       if (ok) {
         setActiveCharId(characterId);
         const char = characters.find((c) => c.id === characterId);
@@ -78,7 +76,7 @@ export default function CharacterPageView({
         toast("error", "대표 캐릭터 설정에 실패했습니다.");
       }
     },
-    [profile.id, characters, toast]
+    [characters, toast]
   );
 
   return (
