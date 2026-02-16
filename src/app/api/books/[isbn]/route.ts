@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
-import { logError } from "@/lib/logger";
+import { lookupAladin } from "@/lib/aladin/api";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
 export const revalidate = 86400; // 24 hours cache
@@ -71,42 +71,28 @@ export async function GET(
         );
       }
 
-      try {
-        const searchParams = new URLSearchParams({
-          TTBKey: ttbKey,
-          ItemId: isbn,
-          ItemIdType: "ISBN13",
-          Cover: "Big",
-          output: "js",
-          Version: "20131101",
-          OptResult: "subInfo",
-        });
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000);
-        const response = await fetch(
-          `https://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?${searchParams.toString()}`,
-          { signal: controller.signal }
-        );
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`Aladin API responded with status ${response.status}`);
-        }
-
-        const text = await response.text();
-        // Aladin API returns JSON with trailing semicolons
-        const cleaned = text.replace(/;+$/, "");
-        const data: AladinSearchResponse = JSON.parse(cleaned);
-
-        return NextResponse.json(data);
-      } catch (error) {
-        logError("Aladin lookup API error:", error);
+      const item = await lookupAladin(isbn);
+      if (!item) {
         return NextResponse.json(
-          { error: "Failed to lookup book" },
-          { status: 500 }
+          { error: "No book found" },
+          { status: 404 }
         );
       }
+
+      const data: AladinSearchResponse = {
+        version: "20131101",
+        title: "",
+        link: "",
+        pubDate: "",
+        totalResults: 1,
+        startIndex: 1,
+        itemsPerPage: 1,
+        query: "",
+        searchCategoryId: 0,
+        searchCategoryName: "",
+        item: [item],
+      };
+      return NextResponse.json(data);
     },
     { key: "isbn", limit: 30, windowSeconds: 60 }
   );

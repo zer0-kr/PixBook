@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@supabase/supabase-js";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
-import { searchAladin } from "@/lib/aladin/api";
+import { searchAladin, lookupAladin } from "@/lib/aladin/api";
 import { logError } from "@/lib/logger";
 import type { AladinItem } from "@/lib/aladin/types";
 
@@ -392,6 +392,15 @@ export async function POST(request: NextRequest) {
 
           const matched = match.item;
 
+          // ItemSearch may not return subInfo.itemPage — fall back to ItemLookUp
+          let pageCount = matched.subInfo?.itemPage;
+          if (!pageCount && matched.isbn13 && !timeBudgetExceeded) {
+            const lookedUp = await lookupAladin(matched.isbn13);
+            if (lookedUp?.subInfo?.itemPage) {
+              pageCount = lookedUp.subInfo.itemPage;
+            }
+          }
+
           // Check if a book with the real ISBN already exists
           const realIsbn = matched.isbn13;
           const { data: existing } = await serviceClient
@@ -404,7 +413,7 @@ export async function POST(request: NextRequest) {
             cover_url: matched.cover || null,
             description: matched.description || null,
             category: matched.categoryName || null,
-            page_count: matched.subInfo?.itemPage ?? 200,
+            page_count: pageCount ?? 200,
             pub_date: matched.pubDate || null,
             aladin_link: matched.link || null,
             publisher: matched.publisher || book.publisher || book.author,
