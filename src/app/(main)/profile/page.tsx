@@ -17,7 +17,7 @@ export default async function ProfilePage() {
   const [user, { data: profileData }, { data: allCharacters }] = await Promise.all([
     getUser(),
     supabase.from("profiles").select("*").single(),
-    supabase.from("characters").select("*"),
+    supabase.from("characters").select("id, name, sprite_url"),
   ]);
 
   if (!user) {
@@ -32,7 +32,7 @@ export default async function ProfilePage() {
 
   // Find active character from pre-fetched list
   const activeCharacter: Character | null = profile.active_character_id
-    ? (allCharacters?.find((c: Character) => c.id === profile.active_character_id) as Character) ?? null
+    ? (allCharacters?.find((c) => c.id === profile.active_character_id) as Character | undefined) ?? null
     : null;
 
   return (

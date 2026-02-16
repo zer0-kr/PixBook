@@ -13,7 +13,11 @@ export default async function LibraryPage() {
     getUser(),
     supabase
       .from("user_books")
-      .select("*, book:books(*)")
+      .select(`
+        id, reading_status, rating, one_line_review,
+        start_date, end_date, created_at,
+        book:books(id, title, author, publisher, cover_url, page_count, category)
+      `)
       .order("created_at", { ascending: false }),
   ]);
 
@@ -26,10 +30,10 @@ export default async function LibraryPage() {
     throw error;
   }
 
-  const userBooks: UserBook[] = (data ?? []).map((row) => ({
+  const userBooks = (data ?? []).map((row) => ({
     ...row,
     book: row.book ?? undefined,
-  }));
+  })) as unknown as UserBook[];
 
   return (
     <>

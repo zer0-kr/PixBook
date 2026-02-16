@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PixelButton, PixelModal } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateLibrary } from "@/lib/actions/revalidate";
 import { logError } from "@/lib/logger";
 
 interface DeleteBookButtonProps {
@@ -29,6 +30,7 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
       if (error) throw error;
 
       toast("success", "서재에서 삭제되었습니다");
+      await revalidateLibrary();
       router.push("/library");
     } catch (err) {
       logError("Error deleting book:", err);

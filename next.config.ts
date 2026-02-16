@@ -31,6 +31,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  experimental: {
+    staleTimes: {
+      dynamic: 30,
+    },
+  },
   productionBrowserSourceMaps: false,
   images: {
     remotePatterns: [

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import { ToastProvider } from "@/components/ui/PixelToast";
@@ -9,6 +11,14 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
+  const router = useRouter();
+
+  useEffect(() => {
+    ["/library", "/tower", "/characters", "/stats", "/profile"].forEach(
+      (route) => router.prefetch(route)
+    );
+  }, [router]);
+
   return (
     <ToastProvider>
       <div className="flex min-h-screen">

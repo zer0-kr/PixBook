@@ -18,7 +18,7 @@ export default async function TowerPage() {
         .select("id, spine_color, end_date, created_at, book:books(id, title, page_count, cover_url)")
         .eq("reading_status", "completed")
         .order("end_date", { ascending: true }),
-      supabase.from("characters").select("*"),
+      supabase.from("characters").select("id, name, sprite_url"),
     ]);
 
   if (!user) {
@@ -34,7 +34,7 @@ export default async function TowerPage() {
 
   // Find active character from pre-fetched list
   const activeCharacter: Character | null = profile?.active_character_id
-    ? (allCharacters?.find((c: Character) => c.id === profile.active_character_id) as Character) ?? null
+    ? (allCharacters?.find((c) => c.id === profile.active_character_id) as Character | undefined) ?? null
     : null;
 
   return (

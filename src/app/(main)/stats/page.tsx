@@ -24,7 +24,7 @@ export default async function StatsPage() {
       supabase.from("profiles").select("*").single(),
       supabase
         .from("user_books")
-        .select("*, book:books(*)")
+        .select("id, end_date, book:books(page_count, category, title)")
         .eq("reading_status", "completed")
         .gte("end_date", yearStart)
         .lte("end_date", yearEnd),
@@ -41,10 +41,10 @@ export default async function StatsPage() {
 
   const profile = profileData as Profile | null;
 
-  const completedBooks: UserBook[] = (completedThisYear ?? []).map((row) => ({
+  const completedBooks = (completedThisYear ?? []).map((row) => ({
     ...row,
     book: row.book ?? undefined,
-  }));
+  })) as unknown as UserBook[];
 
   const sessions: ReadingSession[] = sessionsData ?? [];
 

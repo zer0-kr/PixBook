@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { PixelCard, PixelProgressBar, PixelBadge } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { formatHeight } from "@/lib/tower/calculator";
-import { setActiveCharacterAction } from "@/lib/actions/character";
+import { setActiveCharacterAction, unlockPendingCharactersAction } from "@/lib/actions/character";
 import CharacterCard from "./CharacterCard";
 import type { Character, UserCharacter, Profile, CharacterRarity } from "@/types";
 
@@ -22,18 +23,35 @@ interface CharacterPageViewProps {
   characters: Character[];
   userCharacters: UserCharacter[];
   profile: Profile;
+  pendingUnlock?: boolean;
+  towerHeightCm?: number;
 }
 
 export default function CharacterPageView({
   characters,
-  userCharacters,
+  userCharacters: initialUserCharacters,
   profile,
+  pendingUnlock,
+  towerHeightCm,
 }: CharacterPageViewProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [activeCharId, setActiveCharId] = useState<string | null>(
     profile.active_character_id
   );
+  const [userCharacters, setUserCharacters] = useState(initialUserCharacters);
   const { toast } = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!pendingUnlock || !towerHeightCm) return;
+    let cancelled = false;
+    unlockPendingCharactersAction(towerHeightCm).then((result) => {
+      if (cancelled || !result) return;
+      setUserCharacters(result);
+      router.refresh();
+    });
+    return () => { cancelled = true; };
+  }, [pendingUnlock, towerHeightCm, router]);
 
   const unlockedIds = useMemo(
     () => new Set(userCharacters.map((uc) => uc.character_id)),

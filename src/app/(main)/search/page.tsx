@@ -6,6 +6,7 @@ import SearchBar from "@/components/search/SearchBar";
 import SearchResults from "@/components/search/SearchResults";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
+import { revalidateLibrary } from "@/lib/actions/revalidate";
 import { findOrCreateBook } from "@/lib/aladin/cache";
 import type { AladinItem, AladinSearchResponse } from "@/lib/aladin/types";
 
@@ -129,6 +130,7 @@ export default function SearchPage() {
 
         setLibraryIsbns((prev) => new Set(prev).add(item.isbn13));
         toast("success", "서재에 추가되었습니다!");
+        revalidateLibrary();
       } catch {
         toast("error", "책 추가에 실패했습니다");
       } finally {

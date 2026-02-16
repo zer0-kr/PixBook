@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
-import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import Header from "@/components/layout/Header";
 import CharacterPageView from "@/components/characters/CharacterPageView";
@@ -21,11 +20,11 @@ export default async function CharactersPage() {
       getUser(),
       supabase
         .from("characters")
-        .select("*")
+        .select("id, name, description, sprite_url, unlock_height_cm, rarity")
         .order("unlock_height_cm", { ascending: true }),
       supabase
         .from("user_characters")
-        .select("*, character:characters(*)"),
+        .select("id, character_id, unlocked_at, character:characters(id, name, description, sprite_url, unlock_height_cm, rarity)"),
       supabase.from("profiles").select("*").single(),
       supabase
         .from("user_books")
@@ -44,7 +43,7 @@ export default async function CharactersPage() {
   );
   const towerHeightCm = totalPagesRead * BASE_CM_PER_PAGE;
   const unlockedIds = new Set(
-    (userCharacters ?? []).map((uc) => (uc as UserCharacter).character_id)
+    (userCharacters ?? []).map((uc) => uc.character_id)
   );
   const hasUnlockable = (characters ?? []).some(
     (c) =>
@@ -52,24 +51,16 @@ export default async function CharactersPage() {
       !unlockedIds.has((c as Character).id)
   );
 
-  let finalUserCharacters = userCharacters;
-  if (hasUnlockable) {
-    await checkAndUnlockCharacters(supabase, user.id, towerHeightCm);
-    const { data: refreshed } = await supabase
-      .from("user_characters")
-      .select("*, character:characters(*)")
-      .eq("user_id", user.id);
-    finalUserCharacters = refreshed;
-  }
-
   return (
     <>
       <Header title="캐릭터 도감" />
       <div className="p-4 md:p-6">
         <CharacterPageView
           characters={(characters as Character[]) ?? []}
-          userCharacters={(finalUserCharacters as UserCharacter[]) ?? []}
+          userCharacters={(userCharacters as unknown as UserCharacter[]) ?? []}
           profile={{ ...(profile as Profile), tower_height_cm: towerHeightCm }}
+          pendingUnlock={hasUnlockable}
+          towerHeightCm={towerHeightCm}
         />
       </div>
     </>
