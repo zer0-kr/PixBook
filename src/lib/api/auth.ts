@@ -7,7 +7,7 @@ type AuthResult =
   | { user: User; supabase: SupabaseClient; response?: never }
   | { user?: never; supabase?: never; response: NextResponse };
 
-export async function authenticateApiRequest(): Promise<AuthResult> {
+async function authenticateApiRequest(): Promise<AuthResult> {
   const supabase = await createClient();
   const {
     data: { user },
