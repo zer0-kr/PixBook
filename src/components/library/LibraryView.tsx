@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import type { UserBook, ReadingStatus } from "@/types";
 import BookCard from "./BookCard";
 import EmptyLibrary from "./EmptyLibrary";
@@ -33,7 +34,23 @@ interface LibraryViewProps {
 }
 
 export default function LibraryView({ userBooks }: LibraryViewProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("all");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = (searchParams.get("tab") as TabKey) || "all";
+
+  const setActiveTab = (tab: TabKey) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "all") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+  };
+
   const [sortBy, setSortBy] = useState<SortKey>("newest");
 
   // Count per tab
