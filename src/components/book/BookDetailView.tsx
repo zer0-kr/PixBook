@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { PixelCard } from "@/components/ui";
 import BookInfo from "./BookInfo";
 import ReadingRecord from "./ReadingRecord";
@@ -19,9 +20,12 @@ export default function BookDetailView({
 }: BookDetailViewProps) {
   const [userBook, setUserBook] = useState(initialUserBook);
 
+  const router = useRouter();
+
   const handleUpdate = useCallback((updated: Partial<UserBook>) => {
     setUserBook((prev) => ({ ...prev, ...updated }));
-  }, []);
+    router.refresh();
+  }, [router]);
 
   if (!userBook.book) {
     return (
