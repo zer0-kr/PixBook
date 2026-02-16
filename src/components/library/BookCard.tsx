@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PixelBadge, StarRating } from "@/components/ui";
@@ -23,7 +24,7 @@ interface BookCardProps {
   userBook: UserBook;
 }
 
-export default function BookCard({ userBook }: BookCardProps) {
+function BookCard({ userBook }: BookCardProps) {
   const book = userBook.book;
 
   if (!book) return null;
@@ -77,3 +78,5 @@ export default function BookCard({ userBook }: BookCardProps) {
     </Link>
   );
 }
+
+export default memo(BookCard);

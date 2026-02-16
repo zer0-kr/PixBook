@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 import type { UserBook, ReadingStatus } from "@/types";
 import BookCard from "./BookCard";
 import EmptyLibrary from "./EmptyLibrary";
@@ -36,13 +36,14 @@ const COMPLETED_SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "rating", label: "평점" },
 ];
 
+const PAGE_SIZE = 20;
+
 interface LibraryViewProps {
   userBooks: UserBook[];
 }
 
 export default function LibraryView({ userBooks }: LibraryViewProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
 
   const activeTab = (searchParams.get("tab") as TabKey) || "all";
@@ -55,7 +56,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
       params.set("tab", tab);
     }
     const qs = params.toString();
-    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+    window.history.replaceState(null, "", `${pathname}${qs ? `?${qs}` : ""}`);
   };
 
   const [sortBy, setSortBy] = useState<SortKey>("newest");
@@ -120,6 +121,36 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
     return sorted;
   }, [filteredBooks, effectiveSortBy]);
 
+  // Progressive rendering
+  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Reset display count on tab change
+  useEffect(() => {
+    setDisplayCount(PAGE_SIZE);
+  }, [activeTab]);
+
+  const displayedBooks = sortedBooks.slice(0, displayCount);
+  const hasMore = displayCount < sortedBooks.length;
+
+  // IntersectionObserver for infinite scroll
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setDisplayCount((prev) => prev + PAGE_SIZE);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore]);
+
   if (userBooks.length === 0) {
     return <EmptyLibrary />;
   }
@@ -171,11 +202,14 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {sortedBooks.map((userBook) => (
-            <BookCard key={userBook.id} userBook={userBook} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {displayedBooks.map((userBook) => (
+              <BookCard key={userBook.id} userBook={userBook} />
+            ))}
+          </div>
+          {hasMore && <div ref={sentinelRef} className="h-1" />}
+        </>
       )}
     </div>
   );
