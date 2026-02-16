@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import { logError } from "@/lib/logger";
 import { SPINE_COLORS } from "@/lib/constants";
+import { revalidateLibrary } from "@/lib/actions/revalidate";
 import type { UserBook, ReadingStatus, Character } from "@/types";
 
 interface TowerHeightResult {
@@ -49,6 +50,7 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         if (error) throw error;
 
         if (mountedRef.current) onUpdate(updates);
+        revalidateLibrary();
         return true;
       } catch {
         if (mountedRef.current) toast("error", "저장에 실패했습니다");
