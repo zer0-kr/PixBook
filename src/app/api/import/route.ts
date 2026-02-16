@@ -152,7 +152,8 @@ export async function POST(request: NextRequest) {
         existingUbs?.map((ub) => ub.book_id) ?? []
       );
 
-      // Step 4: Bulk insert new user_books only
+      // Step 4: Bulk insert new user_books only (deduplicate by book_id)
+      const seenBookIds = new Set<string>();
       const newUserBooks = prepared
         .map((p) => {
           const bookId = isbnToBookId.get(p.isbn13);
@@ -160,7 +161,9 @@ export async function POST(request: NextRequest) {
             errors.push(`"${p.title}" 책 ID 매칭 실패`);
             return null;
           }
-          if (existingBookIds.has(bookId)) return null;
+          if (existingBookIds.has(bookId) || seenBookIds.has(bookId))
+            return null;
+          seenBookIds.add(bookId);
           return {
             user_id: auth.user.id,
             book_id: bookId,
