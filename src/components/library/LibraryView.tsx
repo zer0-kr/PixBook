@@ -7,7 +7,7 @@ import BookCard from "./BookCard";
 import EmptyLibrary from "./EmptyLibrary";
 
 type TabKey = "all" | ReadingStatus;
-type SortKey = "newest" | "title" | "author" | "rating";
+type SortKey = "newest" | "recent_read" | "title" | "author" | "rating";
 
 interface Tab {
   key: TabKey;
@@ -22,8 +22,15 @@ const TABS: Tab[] = [
   { key: "dropped", label: "중단" },
 ];
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+const DEFAULT_SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "newest", label: "최신추가" },
+  { key: "title", label: "제목" },
+  { key: "author", label: "저자" },
+  { key: "rating", label: "평점" },
+];
+
+const COMPLETED_SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "recent_read", label: "최근 읽은순" },
   { key: "title", label: "제목" },
   { key: "author", label: "저자" },
   { key: "rating", label: "평점" },
@@ -53,6 +60,12 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
 
   const [sortBy, setSortBy] = useState<SortKey>("newest");
 
+  const sortOptions = activeTab === "completed" ? COMPLETED_SORT_OPTIONS : DEFAULT_SORT_OPTIONS;
+
+  const effectiveSortBy = sortOptions.some((o) => o.key === sortBy)
+    ? sortBy
+    : sortOptions[0].key;
+
   // Count per tab
   const tabCounts = useMemo(() => {
     const counts: Record<TabKey, number> = {
@@ -77,11 +90,17 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
   // Sort
   const sortedBooks = useMemo(() => {
     const sorted = [...filteredBooks];
-    switch (sortBy) {
+    switch (effectiveSortBy) {
       case "newest":
         sorted.sort(
           (a, b) =>
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        break;
+      case "recent_read":
+        sorted.sort(
+          (a, b) =>
+            new Date(b.end_date ?? "").getTime() - new Date(a.end_date ?? "").getTime()
         );
         break;
       case "title":
@@ -99,7 +118,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
         break;
     }
     return sorted;
-  }, [filteredBooks, sortBy]);
+  }, [filteredBooks, effectiveSortBy]);
 
   if (userBooks.length === 0) {
     return <EmptyLibrary />;
@@ -132,11 +151,11 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
           {sortedBooks.length}권
         </p>
         <select
-          value={sortBy}
+          value={effectiveSortBy}
           onChange={(e) => setSortBy(e.target.value as SortKey)}
           className="pixel-input px-2 py-1 text-xs text-brown bg-white"
         >
-          {SORT_OPTIONS.map((opt) => (
+          {sortOptions.map((opt) => (
             <option key={opt.key} value={opt.key}>
               {opt.label}
             </option>
