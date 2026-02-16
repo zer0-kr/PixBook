@@ -11,7 +11,9 @@ test.describe("보강 시 페이지 수 수정", () => {
     await cleanupTestUserData();
   });
 
-  test("보강된 도서가 실제 쪽수를 갖는다 (200이 아님)", async ({ page }) => {
+  test("보강된 도서가 실제 쪽수를 갖는다 (200이 아님)", async ({ page, baseURL }) => {
+    test.setTimeout(60_000);
+
     // 1. IMP- ISBN + page_count=200인 도서 삽입 (알라딘에서 매칭 가능한 실제 도서)
     const bookId = await ensureBookExists({
       isbn13: "IMP-testpagefix",
@@ -23,16 +25,15 @@ test.describe("보강 시 페이지 수 수정", () => {
 
     await addBookToLibrary(bookId, { reading_status: "want_to_read" });
 
-    // 2. 프로필 페이지로 이동하여 "표지 가져오기" 트리거 (API 호출)
-    const baseURL = page.context().pages()[0]?.url()
-      ? new URL(page.url()).origin
-      : process.env.BASE_URL || "https://book-log-khaki.vercel.app";
+    // 2. 페이지 방문으로 인증 쿠키 활성화 후 API 호출
+    await page.goto("/library");
+    await expect(page.getByText("전체")).toBeVisible({ timeout: 15000 });
 
     const res = await page.request.post(`${baseURL}/api/books/enrich`, {
       data: { bookIds: [bookId] },
     });
-    expect(res.ok()).toBeTruthy();
     const body = await res.json();
+    expect(res.ok(), `enrich API failed: ${JSON.stringify(body)}`).toBeTruthy();
     expect(body.enriched).toBe(1);
 
     // 3. page_count가 200이 아닌 실제값인지 확인
