@@ -32,6 +32,17 @@ export default async function TowerPage() {
     book: row.book ?? undefined,
   }));
 
+  // Recalculate tower stats (syncs profiles table and returns fresh values)
+  const { data: towerData } = await supabase.rpc("recalculate_tower_height", {
+    p_user_id: user.id,
+  });
+
+  const towerResult = (
+    towerData as
+      | { tower_height: number; books_completed: number; pages_read: number }[]
+      | null
+  )?.[0];
+
   // Fetch active character (if any)
   let activeCharacter: Character | null = null;
   if (profile?.active_character_id) {
@@ -48,9 +59,9 @@ export default async function TowerPage() {
       <Header title="책 탑" />
       <TowerPageView
         completedBooks={completedBooks}
-        totalHeightCm={profile?.tower_height_cm ?? 0}
-        totalBooksCompleted={profile?.total_books_completed ?? 0}
-        totalPagesRead={profile?.total_pages_read ?? 0}
+        totalHeightCm={towerResult ? Number(towerResult.tower_height) : (profile?.tower_height_cm ?? 0)}
+        totalBooksCompleted={towerResult?.books_completed ?? (profile?.total_books_completed ?? 0)}
+        totalPagesRead={towerResult?.pages_read ?? (profile?.total_pages_read ?? 0)}
         activeCharacter={activeCharacter}
       />
     </>
