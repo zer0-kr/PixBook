@@ -250,6 +250,30 @@ export default function ProfilePageView({
         </PixelCard>
       )}
 
+      {/* Data Export */}
+      <PixelCard hoverable={false}>
+        <h3 className="font-pixel text-xs text-brown mb-4">데이터 내보내기</h3>
+        <p className="text-xs text-brown-lighter mb-3">
+          내 서재 데이터를 CSV 또는 JSON 형식으로 내보낼 수 있습니다.
+        </p>
+        <div className="flex gap-2">
+          <PixelButton
+            variant="secondary"
+            size="sm"
+            onClick={() => window.open("/api/export?format=csv", "_blank")}
+          >
+            CSV 다운로드
+          </PixelButton>
+          <PixelButton
+            variant="secondary"
+            size="sm"
+            onClick={() => window.open("/api/export?format=json", "_blank")}
+          >
+            JSON 다운로드
+          </PixelButton>
+        </div>
+      </PixelCard>
+
       {/* Data Import */}
       <PixelCard hoverable={false}>
         <h3 className="font-pixel text-xs text-brown mb-4">데이터 가져오기</h3>
@@ -311,30 +335,6 @@ export default function ProfilePageView({
           CSV로 가져온 책 중 표지가 없는 항목을 알라딘에서 검색하여 보강합니다.
         </p>
         <EnrichmentProgress />
-      </PixelCard>
-
-      {/* Data Export */}
-      <PixelCard hoverable={false}>
-        <h3 className="font-pixel text-xs text-brown mb-4">데이터 내보내기</h3>
-        <p className="text-xs text-brown-lighter mb-3">
-          내 서재 데이터를 CSV 또는 JSON 형식으로 내보낼 수 있습니다.
-        </p>
-        <div className="flex gap-2">
-          <PixelButton
-            variant="secondary"
-            size="sm"
-            onClick={() => window.open("/api/export?format=csv", "_blank")}
-          >
-            CSV 다운로드
-          </PixelButton>
-          <PixelButton
-            variant="secondary"
-            size="sm"
-            onClick={() => window.open("/api/export?format=json", "_blank")}
-          >
-            JSON 다운로드
-          </PixelButton>
-        </div>
       </PixelCard>
 
       {/* Data Delete */}
