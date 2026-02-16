@@ -16,7 +16,7 @@ test.describe("별점 변경 후 서재 반영", () => {
   test("별점 설정 후 서재에서 반영된다", async ({ page }) => {
     const bookId = await ensureBookExists(TEST_BOOK);
     userBookId = await addBookToLibrary(bookId, {
-      reading_status: "want_to_read",
+      reading_status: "completed",
     });
 
     // 1. 서재에서 별점 없는 상태 확인
@@ -28,7 +28,7 @@ test.describe("별점 변경 후 서재 반영", () => {
     // 별점이 없으므로 star-rating이 없어야 함
     await expect(bookCard.locator(".star-rating")).not.toBeVisible();
 
-    // 2. 상세 페이지에서 별점 4점 설정
+    // 2. 상세 페이지에서 별점 4점 설정 (완독 상태에서만 별점 편집 가능)
     await page.goto(`/book/${userBookId}`);
     await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
       timeout: 15000,
@@ -58,9 +58,9 @@ test.describe("별점 변경 후 서재 반영", () => {
 
   test("별점 취소 후 서재에서 별점이 사라진다", async ({ page }) => {
     const bookId = await ensureBookExists(TEST_BOOK);
-    // 별점 3점으로 초기 설정
+    // 별점 3점으로 초기 설정 (완독 상태에서만 별점 편집 가능)
     userBookId = await addBookToLibrary(bookId, {
-      reading_status: "reading",
+      reading_status: "completed",
       rating: 3,
     });
 
@@ -140,7 +140,7 @@ test.describe("별점 변경 후 서재 반영", () => {
   }) => {
     const bookId = await ensureBookExists(TEST_BOOK);
     userBookId = await addBookToLibrary(bookId, {
-      reading_status: "want_to_read",
+      reading_status: "completed",
     });
 
     // 1. 서재 → 상세 페이지 이동
@@ -154,7 +154,7 @@ test.describe("별점 변경 후 서재 반영", () => {
       timeout: 15000,
     });
 
-    // 2. 별점 3.5점 설정 (반별)
+    // 2. 별점 3.5점 설정 (반별, 완독 상태에서만 편집 가능)
     await page.getByTestId("star-half-4").click({ force: true });
 
     // 디바운스 저장 대기
