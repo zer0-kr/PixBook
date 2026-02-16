@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { TowerPageView } from "@/components/tower";
+import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import type { UserBook, Character, Profile } from "@/types";
 
 export default async function TowerPage() {
@@ -32,16 +33,13 @@ export default async function TowerPage() {
     book: row.book ?? undefined,
   }));
 
-  // Recalculate tower stats (syncs profiles table and returns fresh values)
-  const { data: towerData } = await supabase.rpc("recalculate_tower_height", {
-    p_user_id: user.id,
-  });
-
-  const towerResult = (
-    towerData as
-      | { tower_height: number; books_completed: number; pages_read: number }[]
-      | null
-  )?.[0];
+  // Calculate tower stats directly from completedBooks (no RPC dependency)
+  const totalBooksCompleted = completedBooks.length;
+  const totalPagesRead = completedBooks.reduce(
+    (sum, ub) => sum + (ub.book?.page_count ?? 0),
+    0
+  );
+  const totalHeightCm = totalPagesRead * BASE_CM_PER_PAGE;
 
   // Fetch active character (if any)
   let activeCharacter: Character | null = null;
@@ -59,9 +57,9 @@ export default async function TowerPage() {
       <Header title="책 탑" />
       <TowerPageView
         completedBooks={completedBooks}
-        totalHeightCm={towerResult ? Number(towerResult.tower_height) : (profile?.tower_height_cm ?? 0)}
-        totalBooksCompleted={towerResult?.books_completed ?? (profile?.total_books_completed ?? 0)}
-        totalPagesRead={towerResult?.pages_read ?? (profile?.total_pages_read ?? 0)}
+        totalHeightCm={totalHeightCm}
+        totalBooksCompleted={totalBooksCompleted}
+        totalPagesRead={totalPagesRead}
         activeCharacter={activeCharacter}
       />
     </>
