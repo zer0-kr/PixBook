@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { PixelCard, PixelInput, PixelButton } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
+import { logError } from "@/lib/logger";
 import { formatHeight } from "@/lib/tower/calculator";
 import type { Profile, Character } from "@/types";
 
@@ -42,7 +43,8 @@ export default function ProfilePageView({
       if (error) throw error;
       toast("success", "닉네임이 저장되었습니다");
       router.refresh();
-    } catch {
+    } catch (err) {
+      logError("Error saving nickname:", err);
       toast("error", "닉네임 저장에 실패했습니다");
     } finally {
       setIsSaving(false);
@@ -55,7 +57,8 @@ export default function ProfilePageView({
       const supabase = createClient();
       await supabase.auth.signOut();
       router.push("/login");
-    } catch {
+    } catch (err) {
+      logError("Logout error:", err);
       toast("error", "로그아웃에 실패했습니다");
       setIsLoggingOut(false);
     }

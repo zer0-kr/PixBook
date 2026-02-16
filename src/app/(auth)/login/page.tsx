@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { logError } from "@/lib/logger";
 import { PixelButton, PixelCard, PixelInput } from "@/components/ui";
 
 export default function LoginPage() {
@@ -32,7 +33,8 @@ export default function LoginPage() {
 
       router.push("/library");
       router.refresh();
-    } catch {
+    } catch (err) {
+      logError("Login error:", err);
       setError("로그인 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);

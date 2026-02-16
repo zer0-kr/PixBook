@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { logError } from "@/lib/logger";
 import { PixelButton, PixelCard, PixelInput } from "@/components/ui";
 
 export default function SignupPage() {
@@ -37,7 +38,8 @@ export default function SignupPage() {
       }
 
       setSuccess(true);
-    } catch {
+    } catch (err) {
+      logError("Signup error:", err);
       setError("회원가입 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
