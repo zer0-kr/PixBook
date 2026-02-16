@@ -71,6 +71,59 @@ export async function addBookToLibrary(
   return data!.id;
 }
 
+export async function addCompletedBook(
+  data: BookData,
+  options?: {
+    spine_color?: string;
+    rating?: number;
+    start_date?: string;
+    end_date?: string;
+  }
+): Promise<string> {
+  const bookId = await ensureBookExists(data);
+  const supabase = getAdminClient();
+  const userId = await getTestUserId();
+  if (!userId) throw new Error("Test user not found");
+
+  const { data: userBook, error } = await supabase
+    .from("user_books")
+    .insert({
+      user_id: userId,
+      book_id: bookId,
+      reading_status: "completed",
+      rating: options?.rating ?? 4,
+      spine_color: options?.spine_color ?? "#E74C3C",
+      start_date: options?.start_date ?? "2025-01-15",
+      end_date: options?.end_date ?? "2025-02-20",
+    })
+    .select("id")
+    .single();
+
+  if (error)
+    throw new Error(`Failed to add completed book: ${error.message}`);
+
+  // Update profile stats
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("total_books_completed, total_pages_read, tower_height_cm")
+    .eq("id", userId)
+    .single();
+
+  if (profile) {
+    const spineHeight = Math.round(data.page_count * 0.04);
+    await supabase
+      .from("profiles")
+      .update({
+        total_books_completed: (profile.total_books_completed || 0) + 1,
+        total_pages_read: (profile.total_pages_read || 0) + data.page_count,
+        tower_height_cm: (profile.tower_height_cm || 0) + spineHeight,
+      })
+      .eq("id", userId);
+  }
+
+  return userBook!.id;
+}
+
 export async function cleanupTestUserData(): Promise<void> {
   const supabase = getAdminClient();
   const userId = await getTestUserId();

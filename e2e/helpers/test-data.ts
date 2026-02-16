@@ -73,6 +73,35 @@ export const UI_TEXT = {
   towerHeader: "책 탑",
   statsHeader: "통계",
   charactersHeader: "캐릭터 도감",
+
+  // Signup
+  signupHeader: "[ SIGNUP ]",
+  signupButton: "회원가입",
+  signupLoading: "가입 중...",
+  signupSubheading: "새로운 모험을 시작하세요!",
+  alreadyHaveAccount: "이미 계정이 있으신가요?",
+
+  // Tower
+  towerEmpty: "완료한 책이 없어요",
+  towerStats: "타워 통계",
+  towerTotalHeight: "총 높이",
+  towerBooksCompleted: "완독 수",
+
+  // Stats
+  yearlyCompleted: "올해 완독",
+  totalPagesRead: "총 읽은 페이지",
+  monthlyChart: "월별 완독 수",
+  genreBreakdown: "장르별 분포",
+  readingCalendar: "독서 캘린더",
+  noCompletedBooks: "아직 완독한 책이 없습니다",
+
+  // Characters
+  collectionStatus: "수집 현황",
+  rarityCommon: "일반",
+  rarityRare: "레어",
+  rarityEpic: "에픽",
+  rarityLegendary: "전설",
+  noCharactersInTier: "이 등급의 캐릭터가 없습니다.",
 };
 
 export const TEST_BOOK = {
