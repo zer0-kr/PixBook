@@ -16,9 +16,9 @@ interface Tab {
 
 const TABS: Tab[] = [
   { key: "all", label: "전체" },
-  { key: "want_to_read", label: "읽고싶은" },
-  { key: "reading", label: "읽는중" },
   { key: "completed", label: "완독" },
+  { key: "reading", label: "읽는중" },
+  { key: "want_to_read", label: "읽고싶은" },
   { key: "dropped", label: "중단" },
 ];
 
