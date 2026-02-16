@@ -4,6 +4,7 @@ import { logError } from "@/lib/logger";
 interface SearchOptions {
   maxResults?: number;
   page?: number;
+  queryType?: "Keyword" | "Title";
 }
 
 /**
@@ -17,12 +18,12 @@ export async function searchAladin(
   const ttbKey = process.env.ALADIN_TTB_KEY;
   if (!ttbKey) return [];
 
-  const { maxResults = 20, page = 1 } = options;
+  const { maxResults = 20, page = 1, queryType = "Keyword" } = options;
 
   const params = new URLSearchParams({
     TTBKey: ttbKey,
     Query: query,
-    QueryType: "Keyword",
+    QueryType: queryType,
     MaxResults: String(maxResults),
     start: String(page),
     Cover: "Big",

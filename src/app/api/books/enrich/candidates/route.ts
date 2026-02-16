@@ -26,7 +26,7 @@ export async function GET() {
         .filter(
           (book): book is BookRow =>
             book !== null &&
-            book.isbn13.startsWith("IMP-") &&
+            (book.isbn13.startsWith("IMP-") || book.isbn13.startsWith("ENR-")) &&
             book.cover_url === null
         )
         .map(({ id, title, author }) => ({ id, title, author }));

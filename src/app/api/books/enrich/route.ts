@@ -3,33 +3,253 @@ import { createClient as createServerClient } from "@supabase/supabase-js";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { searchAladin } from "@/lib/aladin/api";
 import { logError } from "@/lib/logger";
+import type { AladinItem } from "@/lib/aladin/types";
 
 const BATCH_LIMIT = 5;
+const HIGH_CONFIDENCE_THRESHOLD = 70;
+const ACCEPT_THRESHOLD = 50;
+
+// ---------------------------------------------------------------------------
+// Title normalization
+// ---------------------------------------------------------------------------
 
 /**
- * Normalize an author string for fuzzy matching:
- * - Remove parenthesized role annotations like (지은이), (옮긴이), (엮은이)
- * - Remove whitespace, commas
- * - Lowercase for latin characters
+ * Produce progressively simplified search queries from a raw title.
+ * Returns an array of distinct levels (most specific → most generic).
  */
+function normalizeTitleForSearch(rawTitle: string): string[] {
+  const levels: string[] = [];
+
+  // Level 1: strip series brackets, edition/volume parentheses at end
+  let l1 = rawTitle.trim();
+  l1 = l1.replace(/^\[[^\]]*\]\s*/, "");              // [시리즈명] prefix
+  l1 = l1.replace(/\s*\([^)]*(?:판|권|쇄|edition|ed)\)[.\s]*$/i, ""); // (개정판), (102권)
+  l1 = l1.replace(/\s+(?:\d+|제?\d+권|Vol\.?\s*\d+)\s*$/i, "");       // trailing 1, 제2권, Vol.3
+  l1 = l1.trim();
+  if (l1) levels.push(l1);
+
+  // Level 2: drop subtitle after : or  -
+  const subtitleIdx = Math.min(
+    l1.indexOf(":") === -1 ? Infinity : l1.indexOf(":"),
+    l1.indexOf(" - ") === -1 ? Infinity : l1.indexOf(" - ")
+  );
+  if (subtitleIdx !== Infinity) {
+    const l2 = l1.slice(0, subtitleIdx).trim();
+    if (l2 && l2 !== l1) levels.push(l2);
+  }
+
+  // Deduplicate (preserving order)
+  return [...new Set(levels)];
+}
+
+/**
+ * Normalize a title for comparison: strip all noise → lowercase → remove
+ * non-alphanumeric (except Korean).
+ */
+function normalizeTitleForComparison(title: string): string {
+  let t = title;
+  t = t.replace(/^\[[^\]]*\]\s*/, "");
+  t = t.replace(/\s*\([^)]*\)\s*/g, "");
+  t = t.replace(/[:\-–—]/g, " ");
+  t = t.toLowerCase();
+  t = t.replace(/[^a-z0-9가-힣ㄱ-ㅎㅏ-ㅣ]/g, "");
+  return t;
+}
+
+// ---------------------------------------------------------------------------
+// Author helpers
+// ---------------------------------------------------------------------------
+
+/** Split a compound author string by common Korean delimiters. */
+function splitAuthors(author: string): string[] {
+  return author
+    .split(/[,·、]/)
+    .map((a) => a.replace(/\([^)]*\)/g, "").trim())
+    .filter(Boolean);
+}
+
+/** Normalize a single author name for comparison. */
 function normalizeAuthor(author: string): string {
   return author
-    .replace(/\([^)]*\)/g, "") // strip (지은이) etc.
-    .replace(/[,\s]/g, "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/[,·、\s]/g, "")
     .toLowerCase();
 }
 
-/**
- * Check if the CSV author matches any of the Aladin result authors.
- * Uses substring inclusion after normalization.
- */
-function authorsMatch(csvAuthor: string, aladinAuthor: string): boolean {
-  const normCsv = normalizeAuthor(csvAuthor);
-  const normAladin = normalizeAuthor(aladinAuthor);
+// ---------------------------------------------------------------------------
+// Scoring
+// ---------------------------------------------------------------------------
 
-  // Either the CSV author appears in the Aladin author string or vice versa
-  return normAladin.includes(normCsv) || normCsv.includes(normAladin);
+/** Character bigram set for Dice coefficient. */
+function bigrams(s: string): Set<string> {
+  const set = new Set<string>();
+  for (let i = 0; i < s.length - 1; i++) set.add(s.slice(i, i + 2));
+  return set;
 }
+
+function diceCoefficient(a: string, b: string): number {
+  const ba = bigrams(a);
+  const bb = bigrams(b);
+  if (ba.size === 0 && bb.size === 0) return 1;
+  if (ba.size === 0 || bb.size === 0) return 0;
+  let overlap = 0;
+  for (const g of ba) if (bb.has(g)) overlap++;
+  return (2 * overlap) / (ba.size + bb.size);
+}
+
+interface BookRow {
+  id: string;
+  title: string;
+  author: string;
+  isbn13: string;
+  publisher: string | null;
+}
+
+function scoreCandidate(
+  book: BookRow,
+  item: AladinItem,
+  rank: number
+): number {
+  let score = 0;
+
+  // --- Author (40 pts) ---
+  const csvAuthor = book.author;
+  const aladinAuthor = item.author ?? "";
+
+  if (!csvAuthor || csvAuthor === "알 수 없음" || csvAuthor === "unknown") {
+    // Unknown author → neutral score
+    score += 15;
+  } else {
+    const normCsv = normalizeAuthor(csvAuthor);
+    const normAladin = normalizeAuthor(aladinAuthor);
+
+    if (normAladin.includes(normCsv) || normCsv.includes(normAladin)) {
+      score += 40;
+    } else {
+      // Try individual author matching
+      const csvAuthors = splitAuthors(csvAuthor);
+      const aladinAuthors = splitAuthors(aladinAuthor);
+      const anyMatch = csvAuthors.some((ca) => {
+        const nca = normalizeAuthor(ca);
+        return aladinAuthors.some((aa) => {
+          const naa = normalizeAuthor(aa);
+          return naa.includes(nca) || nca.includes(naa);
+        });
+      });
+
+      if (anyMatch) {
+        score += 35;
+      } else {
+        // Character overlap
+        const overlap = diceCoefficient(normCsv, normAladin);
+        if (overlap > 0.6) score += 20;
+      }
+    }
+  }
+
+  // --- Title (35 pts) ---
+  const normBookTitle = normalizeTitleForComparison(book.title);
+  const normItemTitle = normalizeTitleForComparison(item.title ?? "");
+
+  if (normBookTitle === normItemTitle) {
+    score += 35;
+  } else if (
+    normBookTitle &&
+    normItemTitle &&
+    (normItemTitle.includes(normBookTitle) || normBookTitle.includes(normItemTitle))
+  ) {
+    const ratio =
+      Math.min(normBookTitle.length, normItemTitle.length) /
+      Math.max(normBookTitle.length, normItemTitle.length);
+    score += Math.round(ratio * 35);
+  } else if (normBookTitle && normItemTitle) {
+    score += Math.round(diceCoefficient(normBookTitle, normItemTitle) * 35);
+  }
+
+  // --- Publisher (15 pts) ---
+  if (book.publisher && item.publisher) {
+    const normBookPub = book.publisher.replace(/[^a-z0-9가-힣]/gi, "").toLowerCase();
+    const normItemPub = item.publisher.replace(/[^a-z0-9가-힣]/gi, "").toLowerCase();
+    if (normBookPub === normItemPub) {
+      score += 15;
+    } else if (normItemPub.includes(normBookPub) || normBookPub.includes(normItemPub)) {
+      score += 12;
+    }
+  }
+
+  // --- Search rank (10 pts) ---
+  if (rank === 0) score += 10;
+  else if (rank === 1) score += 8;
+  else if (rank === 2) score += 6;
+  else if (rank === 3) score += 4;
+  else score += 2;
+
+  return score;
+}
+
+// ---------------------------------------------------------------------------
+// Multi-strategy search
+// ---------------------------------------------------------------------------
+
+interface SearchResult {
+  item: AladinItem;
+  score: number;
+}
+
+async function findBestMatch(
+  book: BookRow,
+  timeBudgetExceeded: boolean
+): Promise<SearchResult | null> {
+  let best: SearchResult | null = null;
+
+  const titleLevels = normalizeTitleForSearch(book.title);
+  const level1 = titleLevels[0] ?? book.title;
+  const level2 = titleLevels[1]; // may be undefined
+
+  // Build strategy list
+  const strategies: Array<{
+    queryType: "Title" | "Keyword";
+    query: string;
+    maxResults: number;
+  }> = [
+    { queryType: "Title", query: level1, maxResults: 20 },
+  ];
+
+  if (!timeBudgetExceeded) {
+    if (level2) {
+      strategies.push({ queryType: "Keyword", query: level2, maxResults: 20 });
+    }
+    // Strategy 3: original title if different from level1
+    if (book.title.trim() !== level1) {
+      strategies.push({ queryType: "Title", query: book.title.trim(), maxResults: 10 });
+    }
+  }
+
+  for (const strategy of strategies) {
+    const items = await searchAladin(strategy.query, {
+      maxResults: strategy.maxResults,
+      queryType: strategy.queryType,
+    });
+
+    for (let i = 0; i < items.length; i++) {
+      const score = scoreCandidate(book, items[i], i);
+      if (!best || score > best.score) {
+        best = { item: items[i], score };
+      }
+      // Early exit on high confidence
+      if (score >= HIGH_CONFIDENCE_THRESHOLD) return best;
+    }
+
+    // If we already have an acceptable match, no need to try further strategies
+    if (best && best.score >= ACCEPT_THRESHOLD) continue;
+  }
+
+  return best;
+}
+
+// ---------------------------------------------------------------------------
+// Route handler
+// ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
   return withAuthAndRateLimit(
@@ -72,10 +292,10 @@ export async function POST(request: NextRequest) {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
-      // Fetch book details using service client
+      // Fetch book details — now includes publisher
       const { data: books, error: booksError } = await serviceClient
         .from("books")
-        .select("id, title, author, isbn13")
+        .select("id, title, author, isbn13, publisher")
         .in("id", validIds);
 
       if (booksError || !books) {
@@ -83,38 +303,39 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
 
-      const results: Array<{ bookId: string; status: string; title?: string }> = [];
+      const results: Array<{
+        bookId: string;
+        status: string;
+        title?: string;
+        score?: number;
+      }> = [];
       let enriched = 0;
       let failed = 0;
+      const batchStart = Date.now();
 
-      for (const book of books) {
+      for (const book of books as BookRow[]) {
         try {
-          const items = await searchAladin(book.title, { maxResults: 5 });
+          const timeBudgetExceeded = Date.now() - batchStart > 20_000;
+          const match = await findBestMatch(book, timeBudgetExceeded);
 
-          if (items.length === 0) {
-            // No results — mark as ENR- to avoid re-processing
+          if (!match || match.score < ACCEPT_THRESHOLD) {
+            // No acceptable match — mark as ENR-
+            const newIsbn = book.isbn13.replace(/^(IMP-|ENR-)/, "ENR-");
             await serviceClient
               .from("books")
-              .update({ isbn13: book.isbn13.replace(/^IMP-/, "ENR-") })
+              .update({ isbn13: newIsbn })
               .eq("id", book.id);
             failed++;
-            results.push({ bookId: book.id, status: "no_results", title: book.title });
+            results.push({
+              bookId: book.id,
+              status: match ? "low_score" : "no_results",
+              title: book.title,
+              score: match?.score,
+            });
             continue;
           }
 
-          // Find a matching item by author
-          const matched = items.find((item) => authorsMatch(book.author, item.author));
-
-          if (!matched) {
-            // Author mismatch — mark as ENR-
-            await serviceClient
-              .from("books")
-              .update({ isbn13: book.isbn13.replace(/^IMP-/, "ENR-") })
-              .eq("id", book.id);
-            failed++;
-            results.push({ bookId: book.id, status: "no_match", title: book.title });
-            continue;
-          }
+          const matched = match.item;
 
           // Check if a book with the real ISBN already exists
           const realIsbn = matched.isbn13;
@@ -131,7 +352,7 @@ export async function POST(request: NextRequest) {
             page_count: matched.subInfo?.itemPage ?? 200,
             pub_date: matched.pubDate || null,
             aladin_link: matched.link || null,
-            publisher: matched.publisher || book.author,
+            publisher: matched.publisher || book.publisher || book.author,
           };
 
           // Only update isbn13 if no conflict with existing book
@@ -145,7 +366,12 @@ export async function POST(request: NextRequest) {
             .eq("id", book.id);
 
           enriched++;
-          results.push({ bookId: book.id, status: "enriched", title: book.title });
+          results.push({
+            bookId: book.id,
+            status: "enriched",
+            title: book.title,
+            score: match.score,
+          });
         } catch (error) {
           logError(`Enrich: error processing book ${book.id}:`, error);
           failed++;
