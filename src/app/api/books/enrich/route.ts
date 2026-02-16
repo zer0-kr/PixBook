@@ -7,7 +7,7 @@ import type { AladinItem } from "@/lib/aladin/types";
 
 const BATCH_LIMIT = 5;
 const HIGH_CONFIDENCE_THRESHOLD = 70;
-const ACCEPT_THRESHOLD = 50;
+const ACCEPT_THRESHOLD = 45;
 
 // ---------------------------------------------------------------------------
 // Title normalization
@@ -105,28 +105,37 @@ interface BookRow {
   publisher: string | null;
 }
 
+interface ScoreBreakdown {
+  author: number;
+  title: number;
+  publisher: number;
+  rank: number;
+  total: number;
+}
+
 function scoreCandidate(
   book: BookRow,
   item: AladinItem,
   rank: number
-): number {
-  let score = 0;
+): ScoreBreakdown {
+  let authorScore = 0;
+  let titleScore = 0;
+  let publisherScore = 0;
+  let rankScore = 0;
 
   // --- Author (40 pts) ---
   const csvAuthor = book.author;
   const aladinAuthor = item.author ?? "";
 
   if (!csvAuthor || csvAuthor === "알 수 없음" || csvAuthor === "unknown") {
-    // Unknown author → neutral score
-    score += 15;
+    authorScore = 15;
   } else {
     const normCsv = normalizeAuthor(csvAuthor);
     const normAladin = normalizeAuthor(aladinAuthor);
 
     if (normAladin.includes(normCsv) || normCsv.includes(normAladin)) {
-      score += 40;
+      authorScore = 40;
     } else {
-      // Try individual author matching
       const csvAuthors = splitAuthors(csvAuthor);
       const aladinAuthors = splitAuthors(aladinAuthor);
       const anyMatch = csvAuthors.some((ca) => {
@@ -138,11 +147,10 @@ function scoreCandidate(
       });
 
       if (anyMatch) {
-        score += 35;
+        authorScore = 35;
       } else {
-        // Character overlap
         const overlap = diceCoefficient(normCsv, normAladin);
-        if (overlap > 0.6) score += 20;
+        if (overlap > 0.6) authorScore = 20;
       }
     }
   }
@@ -152,7 +160,7 @@ function scoreCandidate(
   const normItemTitle = normalizeTitleForComparison(item.title ?? "");
 
   if (normBookTitle === normItemTitle) {
-    score += 35;
+    titleScore = 35;
   } else if (
     normBookTitle &&
     normItemTitle &&
@@ -161,9 +169,9 @@ function scoreCandidate(
     const ratio =
       Math.min(normBookTitle.length, normItemTitle.length) /
       Math.max(normBookTitle.length, normItemTitle.length);
-    score += Math.round(ratio * 35);
+    titleScore = Math.round(ratio * 35);
   } else if (normBookTitle && normItemTitle) {
-    score += Math.round(diceCoefficient(normBookTitle, normItemTitle) * 35);
+    titleScore = Math.round(diceCoefficient(normBookTitle, normItemTitle) * 35);
   }
 
   // --- Publisher (15 pts) ---
@@ -171,20 +179,33 @@ function scoreCandidate(
     const normBookPub = book.publisher.replace(/[^a-z0-9가-힣]/gi, "").toLowerCase();
     const normItemPub = item.publisher.replace(/[^a-z0-9가-힣]/gi, "").toLowerCase();
     if (normBookPub === normItemPub) {
-      score += 15;
+      publisherScore = 15;
     } else if (normItemPub.includes(normBookPub) || normBookPub.includes(normItemPub)) {
-      score += 12;
+      publisherScore = 12;
     }
   }
 
   // --- Search rank (10 pts) ---
-  if (rank === 0) score += 10;
-  else if (rank === 1) score += 8;
-  else if (rank === 2) score += 6;
-  else if (rank === 3) score += 4;
-  else score += 2;
+  if (rank === 0) rankScore = 10;
+  else if (rank === 1) rankScore = 8;
+  else if (rank === 2) rankScore = 6;
+  else if (rank === 3) rankScore = 4;
+  else rankScore = 2;
 
-  return score;
+  return {
+    author: authorScore,
+    title: titleScore,
+    publisher: publisherScore,
+    rank: rankScore,
+    total: authorScore + titleScore + publisherScore + rankScore,
+  };
+}
+
+/** Extract the first author name, or null if unknown. */
+function getFirstAuthor(author: string): string | null {
+  if (!author || author === "알 수 없음" || author === "unknown") return null;
+  const authors = splitAuthors(author);
+  return authors[0] || null;
 }
 
 // ---------------------------------------------------------------------------
@@ -194,6 +215,7 @@ function scoreCandidate(
 interface SearchResult {
   item: AladinItem;
   score: number;
+  scoreBreakdown: ScoreBreakdown;
 }
 
 async function findBestMatch(
@@ -205,39 +227,66 @@ async function findBestMatch(
   const titleLevels = normalizeTitleForSearch(book.title);
   const level1 = titleLevels[0] ?? book.title;
   const level2 = titleLevels[1]; // may be undefined
+  const firstAuthor = getFirstAuthor(book.author);
+
+  // Short title for combined search: use level2 (main title without subtitle) or level1
+  const shortTitle = level2 || level1;
 
   // Build strategy list
   const strategies: Array<{
     queryType: "Title" | "Keyword";
     query: string;
     maxResults: number;
+    lastResort?: boolean;
   }> = [
+    // Strategy 1: normalized title search
     { queryType: "Title", query: level1, maxResults: 20 },
   ];
 
   if (!timeBudgetExceeded) {
+    // Strategy 2 (NEW): combined short title + first author keyword search
+    if (firstAuthor) {
+      strategies.push({
+        queryType: "Keyword",
+        query: `${shortTitle} ${firstAuthor}`,
+        maxResults: 20,
+      });
+    }
+    // Strategy 3: simplified title keyword search (subtitle removed)
     if (level2) {
       strategies.push({ queryType: "Keyword", query: level2, maxResults: 20 });
     }
-    // Strategy 3: original title if different from level1
+    // Strategy 4: original title if different from level1
     if (book.title.trim() !== level1) {
       strategies.push({ queryType: "Title", query: book.title.trim(), maxResults: 10 });
+    }
+    // Strategy 5 (NEW): author name only — last resort
+    if (firstAuthor) {
+      strategies.push({
+        queryType: "Keyword",
+        query: firstAuthor,
+        maxResults: 10,
+        lastResort: true,
+      });
     }
   }
 
   for (const strategy of strategies) {
+    // Strategy 5 only runs if we still have no acceptable match
+    if (strategy.lastResort && best && best.score >= ACCEPT_THRESHOLD) continue;
+
     const items = await searchAladin(strategy.query, {
       maxResults: strategy.maxResults,
       queryType: strategy.queryType,
     });
 
     for (let i = 0; i < items.length; i++) {
-      const score = scoreCandidate(book, items[i], i);
-      if (!best || score > best.score) {
-        best = { item: items[i], score };
+      const breakdown = scoreCandidate(book, items[i], i);
+      if (!best || breakdown.total > best.score) {
+        best = { item: items[i], score: breakdown.total, scoreBreakdown: breakdown };
       }
       // Early exit on high confidence
-      if (score >= HIGH_CONFIDENCE_THRESHOLD) return best;
+      if (breakdown.total >= HIGH_CONFIDENCE_THRESHOLD) return best;
     }
 
     // If we already have an acceptable match, no need to try further strategies
@@ -308,6 +357,7 @@ export async function POST(request: NextRequest) {
         status: string;
         title?: string;
         score?: number;
+        scoreBreakdown?: ScoreBreakdown;
       }> = [];
       let enriched = 0;
       let failed = 0;
@@ -331,6 +381,7 @@ export async function POST(request: NextRequest) {
               status: match ? "low_score" : "no_results",
               title: book.title,
               score: match?.score,
+              scoreBreakdown: match?.scoreBreakdown,
             });
             continue;
           }
