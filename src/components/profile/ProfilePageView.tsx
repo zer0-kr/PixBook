@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { PixelCard, PixelInput, PixelButton } from "@/components/ui";
+import { PixelCard, PixelInput, PixelButton, PixelModal } from "@/components/ui";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import { logError } from "@/lib/logger";
@@ -33,6 +33,8 @@ export default function ProfilePageView({
   const [importRows, setImportRows] = useState<ImportRow[] | null>(null);
   const [importSummary, setImportSummary] = useState<ImportSummary | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -126,6 +128,25 @@ export default function ProfilePageView({
       logError("Logout error:", err);
       toast("error", "로그아웃에 실패했습니다");
       setIsLoggingOut(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await fetch("/api/library/delete-all", { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "삭제 실패");
+      }
+      toast("success", "서재 데이터가 모두 삭제되었습니다");
+      setIsDeleteModalOpen(false);
+      router.refresh();
+    } catch (err) {
+      logError("Error deleting all library data:", err);
+      toast("error", "서재 데이터 삭제에 실패했습니다");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -315,6 +336,55 @@ export default function ProfilePageView({
           </PixelButton>
         </div>
       </PixelCard>
+
+      {/* Data Delete */}
+      <PixelCard hoverable={false}>
+        <h3 className="font-pixel text-xs text-brown mb-4">데이터 삭제</h3>
+        <p className="text-xs text-brown-lighter mb-3">
+          서재에 등록된 모든 책과 메모를 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+        </p>
+        <PixelButton
+          variant="danger"
+          size="sm"
+          onClick={() => setIsDeleteModalOpen(true)}
+        >
+          서재 데이터 전체 삭제
+        </PixelButton>
+      </PixelCard>
+
+      <PixelModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        title="서재 데이터 전체 삭제"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-brown">
+            등록된 모든 책, 메모, 독서 기록이 삭제됩니다. 이 작업은 되돌릴 수
+            없습니다.
+          </p>
+          <p className="text-sm text-brown font-bold">
+            정말 삭제하시겠습니까?
+          </p>
+          <div className="flex gap-2 justify-end">
+            <PixelButton
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+            >
+              취소
+            </PixelButton>
+            <PixelButton
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteAll}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "삭제 중..." : "전체 삭제"}
+            </PixelButton>
+          </div>
+        </div>
+      </PixelModal>
 
       {/* Logout */}
       <div className="flex justify-center pt-4">
