@@ -18,22 +18,16 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
     notFound();
   }
 
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const supabase = await createClient();
 
-  // Fetch user_book and reading notes in parallel
-  const [{ data: userBookData, error: bookError }, { data: notesData }] =
+  // Fetch getUser, user_book, and reading notes in parallel (RLS filters by user)
+  const [user, { data: userBookData, error: bookError }, { data: notesData }] =
     await Promise.all([
+      getUser(),
       supabase
         .from("user_books")
         .select("*, book:books(*)")
         .eq("id", id)
-        .eq("user_id", user.id)
         .single(),
       supabase
         .from("reading_notes")
@@ -41,6 +35,10 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
         .eq("user_book_id", id)
         .order("created_at", { ascending: false }),
     ]);
+
+  if (!user) {
+    redirect("/login");
+  }
 
   if (bookError || !userBookData) {
     notFound();

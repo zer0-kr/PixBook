@@ -7,24 +7,24 @@ import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import type { UserBook, Character, Profile } from "@/types";
 
 export default async function TowerPage() {
-  const user = await getUser();
+  const supabase = await createClient();
+
+  // Fetch getUser, profile, completed books, and all characters in parallel
+  const [user, { data: profileData }, { data: completedData }, { data: allCharacters }] =
+    await Promise.all([
+      getUser(),
+      supabase.from("profiles").select("*").single(),
+      supabase
+        .from("user_books")
+        .select("*, book:books(*)")
+        .eq("reading_status", "completed")
+        .order("end_date", { ascending: true }),
+      supabase.from("characters").select("*"),
+    ]);
 
   if (!user) {
     redirect("/login");
   }
-
-  const supabase = await createClient();
-
-  // Fetch profile + completed books in parallel
-  const [{ data: profileData }, { data: completedData }] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase
-      .from("user_books")
-      .select("*, book:books(*)")
-      .eq("user_id", user.id)
-      .eq("reading_status", "completed")
-      .order("end_date", { ascending: true }),
-  ]);
 
   const profile = profileData as Profile | null;
 
@@ -41,16 +41,10 @@ export default async function TowerPage() {
   );
   const totalHeightCm = totalPagesRead * BASE_CM_PER_PAGE;
 
-  // Fetch active character (if any)
-  let activeCharacter: Character | null = null;
-  if (profile?.active_character_id) {
-    const { data: charData } = await supabase
-      .from("characters")
-      .select("*")
-      .eq("id", profile.active_character_id)
-      .single();
-    activeCharacter = charData as Character | null;
-  }
+  // Find active character from pre-fetched list
+  const activeCharacter: Character | null = profile?.active_character_id
+    ? (allCharacters?.find((c: Character) => c.id === profile.active_character_id) as Character) ?? null
+    : null;
 
   return (
     <>

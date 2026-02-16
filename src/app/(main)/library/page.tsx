@@ -7,19 +7,19 @@ import { LibraryView } from "@/components/library";
 import type { UserBook } from "@/types";
 
 export default async function LibraryPage() {
-  const user = await getUser();
+  const supabase = await createClient();
+
+  const [user, { data, error }] = await Promise.all([
+    getUser(),
+    supabase
+      .from("user_books")
+      .select("*, book:books(*)")
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (!user) {
     redirect("/login");
   }
-
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("user_books")
-    .select("*, book:books(*)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
 
   if (error) {
     logError("Error fetching user books:", error);

@@ -47,11 +47,12 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: DO NOT remove this line.
-  // Refreshes the auth token if expired.
+  // Lightweight session check — decodes JWT from cookie (no network call).
+  // Page-level getUser() handles full JWT verification + token refresh.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   const { pathname } = request.nextUrl;
 

@@ -11,36 +11,33 @@ export const metadata = {
 };
 
 export default async function StatsPage() {
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const supabase = await createClient();
 
   const currentYear = new Date().getFullYear();
   const yearStart = `${currentYear}-01-01`;
   const yearEnd = `${currentYear}-12-31`;
 
-  // Fetch profile, completed books, and reading sessions in parallel
-  const [{ data: profileData }, { data: completedThisYear }, { data: sessionsData }] =
+  // Fetch getUser, profile, completed books, and reading sessions in parallel
+  const [user, { data: profileData }, { data: completedThisYear }, { data: sessionsData }] =
     await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      getUser(),
+      supabase.from("profiles").select("*").single(),
       supabase
         .from("user_books")
         .select("*, book:books(*)")
-        .eq("user_id", user.id)
         .eq("reading_status", "completed")
         .gte("end_date", yearStart)
         .lte("end_date", yearEnd),
       supabase
         .from("reading_sessions")
         .select("*")
-        .eq("user_id", user.id)
         .gte("date", yearStart)
         .lte("date", yearEnd),
     ]);
+
+  if (!user) {
+    redirect("/login");
+  }
 
   const profile = profileData as Profile | null;
 

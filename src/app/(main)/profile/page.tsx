@@ -11,20 +11,18 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const user = await getUser();
+  const supabase = await createClient();
+
+  // Fetch getUser, profile, and all characters in parallel
+  const [user, { data: profileData }, { data: allCharacters }] = await Promise.all([
+    getUser(),
+    supabase.from("profiles").select("*").single(),
+    supabase.from("characters").select("*"),
+  ]);
 
   if (!user) {
     redirect("/login");
   }
-
-  const supabase = await createClient();
-
-  // Fetch profile
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
 
   const profile = profileData as Profile | null;
 
@@ -32,16 +30,10 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  // Fetch active character if set
-  let activeCharacter: Character | null = null;
-  if (profile.active_character_id) {
-    const { data: charData } = await supabase
-      .from("characters")
-      .select("*")
-      .eq("id", profile.active_character_id)
-      .single();
-    activeCharacter = charData as Character | null;
-  }
+  // Find active character from pre-fetched list
+  const activeCharacter: Character | null = profile.active_character_id
+    ? (allCharacters?.find((c: Character) => c.id === profile.active_character_id) as Character) ?? null
+    : null;
 
   return (
     <>

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
+import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import Header from "@/components/layout/Header";
 import CharacterPageView from "@/components/characters/CharacterPageView";
 import type { Character, UserCharacter, Profile } from "@/types";
@@ -12,30 +13,36 @@ export const metadata = {
 };
 
 export default async function CharactersPage() {
-  const user = await getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   const supabase = await createClient();
 
-  // Fetch all characters, user's unlocked characters, and profile in parallel
-  const [{ data: characters }, { data: userCharacters }, { data: profile }] =
+  // Fetch getUser, all characters, user's unlocked characters, profile, and completed books in parallel
+  const [user, { data: characters }, { data: userCharacters }, { data: profile }, { data: completedBooks }] =
     await Promise.all([
+      getUser(),
       supabase
         .from("characters")
         .select("*")
         .order("unlock_height_cm", { ascending: true }),
       supabase
         .from("user_characters")
-        .select("*, character:characters(*)")
-        .eq("user_id", user.id),
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
+        .select("*, character:characters(*)"),
+      supabase.from("profiles").select("*").single(),
+      supabase
+        .from("user_books")
+        .select("book:books(page_count)")
+        .eq("reading_status", "completed"),
     ]);
 
-  // Catch-up: unlock characters that should have been unlocked (e.g. CSV import)
-  const towerHeightCm = Number(profile?.tower_height_cm ?? 0);
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Calculate tower height directly from completed books (profile.tower_height_cm may be stale/0
+  // because recalculate_tower_height RPC fails in server components due to auth.uid() = NULL)
+  const totalPagesRead = (completedBooks ?? []).reduce(
+    (sum, ub) => sum + ((ub as any).book?.page_count ?? 0), 0
+  );
+  const towerHeightCm = totalPagesRead * BASE_CM_PER_PAGE;
   const unlockedIds = new Set(
     (userCharacters ?? []).map((uc) => (uc as UserCharacter).character_id)
   );
@@ -62,7 +69,7 @@ export default async function CharactersPage() {
         <CharacterPageView
           characters={(characters as Character[]) ?? []}
           userCharacters={(finalUserCharacters as UserCharacter[]) ?? []}
-          profile={profile as Profile}
+          profile={{ ...(profile as Profile), tower_height_cm: towerHeightCm }}
         />
       </div>
     </>
