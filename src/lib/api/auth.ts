@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import type { User } from "@supabase/supabase-js";
+import type { User, SupabaseClient } from "@supabase/supabase-js";
 
 type AuthResult =
-  | { user: User; response?: never }
-  | { user?: never; response: NextResponse };
+  | { user: User; supabase: SupabaseClient; response?: never }
+  | { user?: never; supabase?: never; response: NextResponse };
 
 export async function authenticateApiRequest(): Promise<AuthResult> {
   const supabase = await createClient();
@@ -21,5 +21,5 @@ export async function authenticateApiRequest(): Promise<AuthResult> {
     };
   }
 
-  return { user };
+  return { user, supabase };
 }

@@ -1,9 +1,19 @@
+/**
+ * Simple in-memory rate limiter.
+ *
+ * NOTE: This store is per-process. In serverless environments (Vercel, etc.)
+ * each cold-start gets a fresh Map, and concurrent requests may hit different
+ * processes. This provides best-effort protection only. For strict enforcement,
+ * use a distributed store (e.g. Upstash Redis).
+ */
+
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
 const store = new Map<string, RateLimitEntry>();
+const MAX_STORE_SIZE = 10000;
 
 interface RateLimitOptions {
   limit: number;
@@ -15,6 +25,14 @@ export function checkRateLimit(
   { limit, windowSeconds }: RateLimitOptions
 ): { allowed: boolean; remaining: number } {
   const now = Date.now();
+
+  // Evict expired entries when store grows large to prevent memory leaks
+  if (store.size > MAX_STORE_SIZE) {
+    for (const [k, v] of store) {
+      if (now >= v.resetAt) store.delete(k);
+    }
+  }
+
   const entry = store.get(key);
 
   if (!entry || now >= entry.resetAt) {

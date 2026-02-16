@@ -1,10 +1,14 @@
 -- Issue 1: Atomic set_active_character
 -- Replaces non-atomic 3-step client-side operation (deactivate → activate → profile update)
+-- Runs inside an implicit PL/pgSQL transaction: all-or-nothing.
 CREATE OR REPLACE FUNCTION public.set_active_character(
   p_user_id UUID, p_character_id UUID
 ) RETURNS BOOLEAN
 LANGUAGE plpgsql SECURITY INVOKER SET search_path = '' AS $$
 BEGIN
+  IF p_user_id != auth.uid() THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
   UPDATE public.user_characters SET is_active = false
     WHERE user_id = p_user_id AND is_active = true;
   UPDATE public.user_characters SET is_active = true
@@ -19,12 +23,16 @@ END; $$;
 
 -- Issue 2: Atomic recalculate_tower_height
 -- Replaces non-atomic client-side fetch→compute→update pattern
+-- Runs inside an implicit PL/pgSQL transaction: all-or-nothing.
 CREATE OR REPLACE FUNCTION public.recalculate_tower_height(p_user_id UUID)
 RETURNS TABLE(tower_height NUMERIC, books_completed INTEGER, pages_read INTEGER)
 LANGUAGE plpgsql SECURITY INVOKER SET search_path = '' AS $$
 DECLARE v_pages INT; v_books INT; v_height NUMERIC;
 BEGIN
-  SELECT COALESCE(COUNT(*),0), COALESCE(SUM(b.page_count),0)
+  IF p_user_id != auth.uid() THEN
+    RAISE EXCEPTION 'Unauthorized';
+  END IF;
+  SELECT COUNT(*)::INT, COALESCE(SUM(b.page_count), 0)::INT
     INTO v_books, v_pages
     FROM public.user_books ub JOIN public.books b ON b.id = ub.book_id
     WHERE ub.user_id = p_user_id AND ub.reading_status = 'completed';

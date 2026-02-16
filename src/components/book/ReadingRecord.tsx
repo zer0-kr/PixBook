@@ -9,6 +9,12 @@ import { logError } from "@/lib/logger";
 import UnlockAnimation from "@/components/characters/UnlockAnimation";
 import type { UserBook, ReadingStatus, Character } from "@/types";
 
+interface TowerHeightResult {
+  tower_height: number;
+  books_completed: number;
+  pages_read: number;
+}
+
 const STATUS_OPTIONS: { key: ReadingStatus; label: string; color: string }[] = [
   { key: "want_to_read", label: "읽고 싶은", color: "bg-status-want text-brown" },
   { key: "reading", label: "읽는 중", color: "bg-status-reading text-white" },
@@ -110,7 +116,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         return;
       }
 
-      const result = data?.[0];
+      const result = (data as TowerHeightResult[] | null)?.[0];
       if (!result) return;
 
       const towerHeight = Number(result.tower_height);

@@ -3,38 +3,6 @@ import { authenticateApiRequest } from "@/lib/api/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import type { AladinSearchResponse } from "@/lib/aladin/types";
 
-const MOCK_LOOKUP_RESPONSE: AladinSearchResponse = {
-  version: "20131101",
-  title: "알라딘 상품 조회 (Mock)",
-  link: "https://www.aladin.co.kr",
-  pubDate: new Date().toISOString(),
-  totalResults: 1,
-  startIndex: 1,
-  itemsPerPage: 1,
-  query: "",
-  searchCategoryId: 0,
-  searchCategoryName: "",
-  item: [
-    {
-      itemId: 1,
-      title: "클린 코드 (Clean Code)",
-      link: "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=34083680",
-      author: "로버트 C. 마틴 (지은이), 박재호, 이해영 (옮긴이)",
-      pubDate: "2013-12-24",
-      description:
-        "프로그래머, 소프트웨어 공학도, 프로젝트 관리자, 팀 리드, 시스템 분석가에게 추천하는 필독서.",
-      isbn13: "9788966260959",
-      cover:
-        "https://image.aladin.co.kr/product/3408/36/cover500/8966260950_2.jpg",
-      categoryName: "국내도서>컴퓨터/모바일>프로그래밍 언어",
-      publisher: "인사이트",
-      subInfo: {
-        itemPage: 464,
-      },
-    },
-  ],
-};
-
 export const revalidate = 86400; // 24 hours cache
 
 export async function GET(
@@ -51,7 +19,7 @@ export async function GET(
   if (!allowed) {
     return NextResponse.json(
       { error: "Too many requests" },
-      { status: 429 }
+      { status: 429, headers: { "Retry-After": "60" } }
     );
   }
 
@@ -75,13 +43,39 @@ export async function GET(
 
   if (!ttbKey) {
     if (process.env.NODE_ENV === "development") {
-      return NextResponse.json({
-        ...MOCK_LOOKUP_RESPONSE,
-        item: MOCK_LOOKUP_RESPONSE.item.map((item) => ({
-          ...item,
-          isbn13: isbn,
-        })),
-      });
+      // Mock data only available in development
+      const mockResponse: AladinSearchResponse = {
+        version: "20131101",
+        title: "알라딘 상품 조회 (Mock)",
+        link: "https://www.aladin.co.kr",
+        pubDate: new Date().toISOString(),
+        totalResults: 1,
+        startIndex: 1,
+        itemsPerPage: 1,
+        query: "",
+        searchCategoryId: 0,
+        searchCategoryName: "",
+        item: [
+          {
+            itemId: 1,
+            title: "클린 코드 (Clean Code)",
+            link: "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=34083680",
+            author: "로버트 C. 마틴 (지은이), 박재호, 이해영 (옮긴이)",
+            pubDate: "2013-12-24",
+            description:
+              "프로그래머, 소프트웨어 공학도, 프로젝트 관리자, 팀 리드, 시스템 분석가에게 추천하는 필독서.",
+            isbn13: isbn,
+            cover:
+              "https://image.aladin.co.kr/product/3408/36/cover500/8966260950_2.jpg",
+            categoryName: "국내도서>컴퓨터/모바일>프로그래밍 언어",
+            publisher: "인사이트",
+            subInfo: {
+              itemPage: 464,
+            },
+          },
+        ],
+      };
+      return NextResponse.json(mockResponse);
     }
     return NextResponse.json(
       { error: "Book service temporarily unavailable" },

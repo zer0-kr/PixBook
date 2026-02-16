@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { authenticateApiRequest } from "@/lib/api/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
   if (!allowed) {
     return NextResponse.json(
       { error: "Too many requests" },
-      { status: 429 }
+      { status: 429, headers: { "Retry-After": "60" } }
     );
   }
 
@@ -52,8 +51,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Fetch all user_books with book data
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data, error } = await auth.supabase
     .from("user_books")
     .select("*, book:books(*)")
     .eq("user_id", auth.user.id)

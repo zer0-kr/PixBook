@@ -6,10 +6,12 @@ import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import type { ReadingNote } from "@/types";
 
+const MAX_PAGE_NUMBER = 99999;
+
 function parsePageNumber(value: string): number | null {
   if (!value.trim()) return null;
   const parsed = parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed < 1) return null;
+  if (Number.isNaN(parsed) || parsed < 1 || parsed > MAX_PAGE_NUMBER) return null;
   return parsed;
 }
 
