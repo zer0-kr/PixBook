@@ -3,14 +3,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { TowerPageView } from "@/components/tower";
-import { getCachedCharacters } from "@/lib/supabase/cached-queries";
 import type { UserBook, Character, Profile } from "@/types";
 
 export default async function TowerPage() {
   const supabase = await createClient();
 
   // Fetch getUser, profile, completed books, and all characters in parallel
-  const [user, { data: profileData }, { data: completedData }, allCharacters] =
+  const [user, { data: profileData }, { data: completedData }, { data: allCharacters }] =
     await Promise.all([
       getUser(),
       supabase.from("profiles").select("*").single(),
@@ -19,7 +18,7 @@ export default async function TowerPage() {
         .select("id, spine_color, end_date, created_at, book:books(id, title, page_count, cover_url)")
         .eq("reading_status", "completed")
         .order("end_date", { ascending: true }),
-      getCachedCharacters(),
+      supabase.from("characters").select("*"),
     ]);
 
   if (!user) {
@@ -35,7 +34,7 @@ export default async function TowerPage() {
 
   // Find active character from pre-fetched list
   const activeCharacter: Character | null = profile?.active_character_id
-    ? allCharacters.find((c) => c.id === profile.active_character_id) ?? null
+    ? (allCharacters?.find((c: Character) => c.id === profile.active_character_id) as Character) ?? null
     : null;
 
   return (
