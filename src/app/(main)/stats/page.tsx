@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { StatsPageView } from "@/components/stats";
 import type { Profile, UserBook, ReadingSession } from "@/types";
@@ -10,49 +11,43 @@ export const metadata = {
 };
 
 export default async function StatsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
 
+  const supabase = await createClient();
+
   const currentYear = new Date().getFullYear();
   const yearStart = `${currentYear}-01-01`;
   const yearEnd = `${currentYear}-12-31`;
 
-  // Fetch profile
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  // Fetch profile, completed books, and reading sessions in parallel
+  const [{ data: profileData }, { data: completedThisYear }, { data: sessionsData }] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase
+        .from("user_books")
+        .select("*, book:books(*)")
+        .eq("user_id", user.id)
+        .eq("reading_status", "completed")
+        .gte("end_date", yearStart)
+        .lte("end_date", yearEnd),
+      supabase
+        .from("reading_sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("date", yearStart)
+        .lte("date", yearEnd),
+    ]);
 
   const profile = profileData as Profile | null;
-
-  // Fetch completed user_books this year with book data
-  const { data: completedThisYear } = await supabase
-    .from("user_books")
-    .select("*, book:books(*)")
-    .eq("user_id", user.id)
-    .eq("reading_status", "completed")
-    .gte("end_date", yearStart)
-    .lte("end_date", yearEnd);
 
   const completedBooks: UserBook[] = (completedThisYear ?? []).map((row) => ({
     ...row,
     book: row.book ?? undefined,
   }));
-
-  // Fetch reading sessions for calendar heatmap (current year)
-  const { data: sessionsData } = await supabase
-    .from("reading_sessions")
-    .select("*")
-    .eq("user_id", user.id)
-    .gte("date", yearStart)
-    .lte("date", yearEnd);
 
   const sessions: ReadingSession[] = sessionsData ?? [];
 

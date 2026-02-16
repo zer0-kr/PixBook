@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { ProfilePageView } from "@/components/profile";
 import type { Profile, Character } from "@/types";
@@ -10,14 +11,13 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
+
+  const supabase = await createClient();
 
   // Fetch profile
   const { data: profileData } = await supabase

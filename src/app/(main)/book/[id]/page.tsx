@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { BookDetailView } from "@/components/book";
 import type { UserBook, ReadingNote } from "@/types";
@@ -17,23 +18,29 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
     notFound();
   }
 
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch user_book with joined book data
-  const { data: userBookData, error: bookError } = await supabase
-    .from("user_books")
-    .select("*, book:books(*)")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  const supabase = await createClient();
+
+  // Fetch user_book and reading notes in parallel
+  const [{ data: userBookData, error: bookError }, { data: notesData }] =
+    await Promise.all([
+      supabase
+        .from("user_books")
+        .select("*, book:books(*)")
+        .eq("id", id)
+        .eq("user_id", user.id)
+        .single(),
+      supabase
+        .from("reading_notes")
+        .select("*")
+        .eq("user_book_id", id)
+        .order("created_at", { ascending: false }),
+    ]);
 
   if (bookError || !userBookData) {
     notFound();
@@ -43,13 +50,6 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
     ...userBookData,
     book: userBookData.book ?? undefined,
   };
-
-  // Fetch reading notes for this user_book
-  const { data: notesData } = await supabase
-    .from("reading_notes")
-    .select("*")
-    .eq("user_book_id", id)
-    .order("created_at", { ascending: false });
 
   const notes: ReadingNote[] = notesData ?? [];
 

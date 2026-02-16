@@ -1,35 +1,31 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { TowerPageView } from "@/components/tower";
 import type { UserBook, Character, Profile } from "@/types";
 
 export default async function TowerPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  // Fetch profile
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  const supabase = await createClient();
+
+  // Fetch profile + completed books in parallel
+  const [{ data: profileData }, { data: completedData }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase
+      .from("user_books")
+      .select("*, book:books(*)")
+      .eq("user_id", user.id)
+      .eq("reading_status", "completed")
+      .order("end_date", { ascending: true }),
+  ]);
 
   const profile = profileData as Profile | null;
-
-  // Fetch completed books with their book data
-  const { data: completedData } = await supabase
-    .from("user_books")
-    .select("*, book:books(*)")
-    .eq("user_id", user.id)
-    .eq("reading_status", "completed")
-    .order("end_date", { ascending: true });
 
   const completedBooks: UserBook[] = (completedData ?? []).map((row) => ({
     ...row,

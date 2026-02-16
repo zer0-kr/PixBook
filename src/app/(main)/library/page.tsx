@@ -1,19 +1,19 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/supabase/get-user";
 import { logError } from "@/lib/logger";
 import { Header } from "@/components/layout";
 import { LibraryView } from "@/components/library";
 import type { UserBook } from "@/types";
 
 export default async function LibraryPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
+
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("user_books")
