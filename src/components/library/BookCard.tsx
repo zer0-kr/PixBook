@@ -3,22 +3,8 @@
 import { memo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PixelBadge, StarRating } from "@/components/ui";
-import type { UserBook, ReadingStatus } from "@/types";
-
-const statusBadgeVariant: Record<ReadingStatus, "want" | "reading" | "completed" | "dropped"> = {
-  want_to_read: "want",
-  reading: "reading",
-  completed: "completed",
-  dropped: "dropped",
-};
-
-const statusLabel: Record<ReadingStatus, string> = {
-  want_to_read: "읽고 싶은",
-  reading: "읽는 중",
-  completed: "완독",
-  dropped: "중단",
-};
+import { StarRating } from "@/components/ui";
+import type { UserBook } from "@/types";
 
 interface BookCardProps {
   userBook: UserBook;
@@ -50,12 +36,6 @@ function BookCard({ userBook }: BookCardProps) {
             </div>
           )}
 
-          {/* Status badge overlay */}
-          <div className="absolute top-1 right-1">
-            <PixelBadge variant={statusBadgeVariant[userBook.reading_status]}>
-              {statusLabel[userBook.reading_status]}
-            </PixelBadge>
-          </div>
         </div>
 
         {/* Book info */}
