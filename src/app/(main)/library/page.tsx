@@ -19,8 +19,7 @@ export default async function LibraryPage() {
     .from("user_books")
     .select("*, book:books(*)")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(200);
+    .order("created_at", { ascending: false });
 
   if (error) {
     logError("Error fetching user books:", error);
