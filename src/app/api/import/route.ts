@@ -100,24 +100,42 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ imported: 0, skipped: 0, errors });
       }
 
-      // Step 2: Bulk upsert all books + retrieve IDs
+      // Step 2: Bulk insert books (skip existing via ignoreDuplicates)
+      const uniqueIsbns = [...new Set(prepared.map((p) => p.isbn13))];
+      const booksToInsert = uniqueIsbns.map((isbn) => {
+        const p = prepared.find((r) => r.isbn13 === isbn)!;
+        return {
+          isbn13: p.isbn13,
+          title: p.title,
+          author: p.author,
+          publisher: p.publisher,
+          page_count: 200,
+        };
+      });
+
+      const { error: insertBooksError } = await auth.supabase
+        .from("books")
+        .upsert(booksToInsert, {
+          onConflict: "isbn13",
+          ignoreDuplicates: true,
+        });
+
+      if (insertBooksError) {
+        return NextResponse.json(
+          { error: "책 일괄 저장 실패", detail: insertBooksError.message },
+          { status: 500 }
+        );
+      }
+
+      // Step 2b: Fetch all book IDs by isbn13
       const { data: books, error: booksError } = await auth.supabase
         .from("books")
-        .upsert(
-          prepared.map((p) => ({
-            isbn13: p.isbn13,
-            title: p.title,
-            author: p.author,
-            publisher: p.publisher,
-            page_count: 200,
-          })),
-          { onConflict: "isbn13" }
-        )
-        .select("id, isbn13");
+        .select("id, isbn13")
+        .in("isbn13", uniqueIsbns);
 
       if (booksError || !books) {
         return NextResponse.json(
-          { error: "책 일괄 저장 실패", detail: booksError?.message },
+          { error: "책 ID 조회 실패", detail: booksError?.message },
           { status: 500 }
         );
       }
