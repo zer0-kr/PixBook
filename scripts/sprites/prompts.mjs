@@ -1,14 +1,15 @@
 /**
  * DALL-E 3 prompts for 62 PickBook character sprites.
+ * Theme: Height-based everyday objects & landmarks.
  *
  * Structure: STYLE_PREFIX + RARITY_MODIFIER[rarity] + character description
  */
 
 const STYLE_PREFIX =
   "64x64 pixel art sprite, retro 8-bit game style, transparent background, " +
-  "single character centered on canvas, warm cream and brown color palette, " +
-  "1-2px dark brown (#3D2C2E) outline, cute expressive face, chibi proportions, " +
-  "no text, no UI elements, clean pixel edges";
+  "single object centered on canvas, warm cream and brown color palette, " +
+  "1-2px dark brown (#3D2C2E) outline, cute kawaii face (small dot eyes and tiny smile), " +
+  "chibi proportions, no text, no UI elements, clean pixel edges";
 
 const RARITY_MODIFIER = {
   common: "simple clean design, flat colors, minimal shading",
@@ -23,391 +24,391 @@ const RARITY_MODIFIER = {
  */
 export const CHARACTER_PROMPTS = [
   // ==========================================
-  // COMMON (30 characters)
+  // COMMON (30 characters, 0–850cm)
   // ==========================================
   {
-    slug: "baby-bookworm",
+    slug: "rice-grain",
     rarity: "common",
     prompt:
-      "a tiny baby bookworm character, small green caterpillar wearing round glasses, sitting on an open book, happy smile, rosy cheeks",
+      "a single tiny white rice grain character, oval shaped, cute face, sitting on a small green leaf, minimal and adorable",
   },
   {
-    slug: "curious-cat",
+    slug: "acorn",
     rarity: "common",
     prompt:
-      "a curious orange tabby cat, standing on hind legs, one paw reaching to open a book, big round eyes full of wonder, small whiskers",
+      "a small brown acorn character with a cute cap hat, rosy cheeks, standing on a tiny twig, autumn leaf nearby",
   },
   {
-    slug: "reading-rabbit",
+    slug: "bottle-cap",
     rarity: "common",
     prompt:
-      "a cute white rabbit sitting and reading a small book, long floppy ears, holding the book with both paws, content expression",
+      "a shiny metal bottle cap character, circular shape, ridged edges like a crown, reflective silver surface, cute face, standing upright",
   },
   {
-    slug: "note-squirrel",
+    slug: "macaron",
     rarity: "common",
     prompt:
-      "a brown squirrel holding a tiny notepad and pencil, bushy tail curled up, studious look, small acorn-shaped eraser nearby",
+      "a cute pastel pink macaron character, two round cookie halves with cream filling, small crumbs, french patisserie style",
   },
   {
-    slug: "dreaming-cloud",
+    slug: "tangerine",
     rarity: "common",
     prompt:
-      "a small fluffy cloud character with a sleepy happy face, pastel colored, tiny closed eyes, floating above an open storybook",
+      "a round orange tangerine character with a small green leaf on top, cute face, slightly textured skin, bright and cheerful",
   },
   {
-    slug: "bookmark-fairy",
+    slug: "coffee-mug",
     rarity: "common",
     prompt:
-      "a tiny fairy with translucent wings shaped like bookmarks, wearing a brown dress, holding a ribbon bookmark, gentle smile",
+      "a warm coffee mug character, white ceramic with a small heart on it, steam rising from top, cozy and inviting, cute face on the mug",
   },
   {
-    slug: "letter-firefly",
+    slug: "candle",
     rarity: "common",
     prompt:
-      "a glowing firefly character with letters floating in its light, warm yellow glow, tiny wings, reading in the dark",
+      "a small lit candle character, warm yellow flame on top, white wax body, melting slightly, warm glow, cute face on the candle body",
   },
   {
-    slug: "story-snail",
+    slug: "banana",
     rarity: "common",
     prompt:
-      "a determined snail with a shell decorated like a book spine, carrying a tiny book on its back, slow but steady expression",
+      "a bright yellow banana character, slightly curved, peeled halfway, cute face, tropical and cheerful",
   },
   {
-    slug: "origami-crane",
+    slug: "milk-carton",
     rarity: "common",
     prompt:
-      "a small origami paper crane character, folded from book pages with visible text, delicate paper wings spread",
+      "a small milk carton character, white and blue rectangular box, triangular roof top, cute face, straw sticking out",
   },
   {
-    slug: "ink-octopus",
+    slug: "sneaker",
     rarity: "common",
     prompt:
-      "a small purple octopus holding multiple books with different tentacles, ink-stained, wearing tiny reading glasses, cheerful",
+      "a colorful sneaker shoe character, red and white athletic shoe, untied laces, cute face on the side, sporty and fun",
   },
   {
-    slug: "sleepy-bear",
+    slug: "sitting-cat",
     rarity: "common",
     prompt:
-      "a drowsy brown bear cub in pajamas, yawning while holding a bedtime storybook, small nightcap, cozy pose",
+      "a cute orange tabby cat sitting upright, fluffy, small whiskers, curled tail, content expression, cozy domestic cat",
   },
   {
-    slug: "adventure-turtle",
+    slug: "bouquet",
     rarity: "common",
     prompt:
-      "a green turtle with a world map pattern on its shell, wearing a tiny explorer hat, holding a compass and adventure book",
+      "a flower bouquet character, mixed colorful flowers (pink roses, white daisies) wrapped in brown paper, tied with a ribbon, cute face peeking from flowers",
   },
   {
-    slug: "rainbow-parrot",
+    slug: "teddy-bear",
     rarity: "common",
     prompt:
-      "a colorful parrot with rainbow feathers, perched on a book, beak open as if reading aloud, vibrant but warm tones",
+      "a brown teddy bear character, soft and fluffy, button eyes, small red bow tie, sitting pose, huggable and warm",
   },
   {
-    slug: "shooting-star-hamster",
+    slug: "cactus",
     rarity: "common",
     prompt:
-      "a chubby hamster holding a star-themed picture book, tiny star decorations around it, round cheeks, amazed expression",
+      "a small green cactus character in a terracotta pot, two small arms, tiny pink flower on top, cute face, desert vibes",
   },
   {
-    slug: "singing-cricket",
+    slug: "fire-extinguisher",
     rarity: "common",
     prompt:
-      "a green cricket standing upright holding a poetry book, musical notes floating nearby, one leg tapping rhythm",
+      "a red fire extinguisher character, cylindrical body, black nozzle on top, cute determined face, small pressure gauge",
   },
   {
-    slug: "collector-magpie",
+    slug: "ukulele",
     rarity: "common",
     prompt:
-      "a black and white magpie bird collecting shiny bookmarks and quotes, holding a sparkling sentence in its beak",
+      "a small wooden ukulele character, light brown body, four strings, cute face on the sound hole, musical notes floating",
   },
   {
-    slug: "chef-raccoon",
+    slug: "puppy",
     rarity: "common",
     prompt:
-      "a raccoon wearing a chef hat and apron, holding a cookbook, small whisk in other paw, focused expression",
+      "a cute golden retriever puppy character, sitting with tongue out, wagging tail, floppy ears, happy and playful",
   },
   {
-    slug: "detective-hedgehog",
+    slug: "globe",
     rarity: "common",
     prompt:
-      "a hedgehog wearing a deerstalker detective hat, holding a magnifying glass over a mystery book, sharp attentive eyes",
+      "a desk globe character, blue oceans and green continents visible, on a small brown stand, cute face on the globe, spinning slightly",
   },
   {
-    slug: "artist-chameleon",
+    slug: "guitar",
     rarity: "common",
     prompt:
-      "a chameleon changing colors to match an art book it is holding, paintbrush in tail, palette of warm colors",
+      "an acoustic guitar character, wooden body, six strings, cute face on the body, small musical notes around, warm brown tones",
   },
   {
-    slug: "mailbird-pigeon",
+    slug: "umbrella",
     rarity: "common",
     prompt:
-      "a carrier pigeon wearing a mailbag, delivering a book recommendation letter, small envelope in beak, friendly face",
+      "a red umbrella character, open and upright, curved wooden handle, raindrops around, cute face under the canopy, cozy rainy day",
   },
   {
-    slug: "musician-frog",
+    slug: "telescope",
     rarity: "common",
     prompt:
-      "a green frog sitting on a lily pad reading a poetry book, tiny musical notes around, one foot tapping, cheerful",
+      "a brass telescope character on a tripod, pointing upward, small stars visible, cute face on the eyepiece end, explorer vibes",
   },
   {
-    slug: "gardener-mole",
+    slug: "bicycle",
     rarity: "common",
     prompt:
-      "a brown mole wearing a gardening hat, planting book-shaped seeds, small sprouts with page-shaped leaves",
+      "a cute bicycle character, red frame, two wheels, small basket with flowers on front, cute face on the frame, cheerful",
   },
   {
-    slug: "math-ant",
+    slug: "emperor-penguin",
     rarity: "common",
     prompt:
-      "a tiny red ant wearing miniature glasses, carrying a book much bigger than itself, numbers floating above its head",
+      "an emperor penguin character, black and white with yellow chest patch, standing tall, cute round body, small flippers, Antarctic vibes",
   },
   {
-    slug: "inventor-mouse",
+    slug: "snowboard",
     rarity: "common",
     prompt:
-      "a grey mouse wearing goggles on its head, building a tiny contraption from book instructions, gears and tools nearby",
+      "a colorful snowboard character, bright blue and orange design, standing upright in snow, cute face on the board, snow particles",
   },
   {
-    slug: "surfing-otter",
+    slug: "person",
     rarity: "common",
     prompt:
-      "a brown otter floating on its back in water, holding a book above the surface, relaxed happy expression, small waves",
+      "a cute pixel person character, simple human figure, brown hair, wearing a blue shirt and jeans, waving hand, friendly smile",
   },
   {
-    slug: "photographer-meerkat",
+    slug: "refrigerator",
     rarity: "common",
     prompt:
-      "a meerkat standing tall holding a tiny camera, a photo album at its feet, alert and observant pose",
+      "a white refrigerator character, two-door style, small magnets and photos on front, cute face on upper door, slightly open with light inside",
   },
   {
-    slug: "philosopher-owl",
+    slug: "door",
     rarity: "common",
     prompt:
-      "a brown owl with deep thoughtful eyes, perched on a stack of philosophy books, one wing on chin in thinking pose",
+      "a wooden door character, brown with a golden doorknob, slightly ajar with light coming through, cute face, welcoming",
   },
   {
-    slug: "sculptor-beaver",
+    slug: "piano",
     rarity: "common",
     prompt:
-      "a beaver carving a tiny wooden book sculpture with its teeth, wood chips around, proud artistic expression",
+      "an upright piano character, black and white keys visible, wooden brown body, cute face above the keys, musical notes floating",
   },
   {
-    slug: "astronomer-owl",
+    slug: "christmas-tree",
     rarity: "common",
     prompt:
-      "a grey owl wearing a small telescope around its neck, holding a star chart book, night sky theme, wise expression",
+      "a decorated Christmas tree character, green with colorful ornaments and a golden star on top, string lights, cute face, festive",
   },
   {
-    slug: "marathon-cheetah",
+    slug: "basketball-hoop",
     rarity: "common",
     prompt:
-      "a cheetah in a running pose holding a book, speed lines behind it, wearing a headband, determined fast expression",
+      "a basketball hoop character, orange rim with white net, on a tall pole, basketball bouncing nearby, cute face on the backboard",
   },
 
   // ==========================================
-  // RARE (20 characters)
+  // RARE (20 characters, 900–4500cm)
   // ==========================================
   {
-    slug: "wise-owl",
+    slug: "giraffe",
     rarity: "rare",
     prompt:
-      "an ancient wise owl scholar with small round spectacles, long white eyebrow feathers, surrounded by floating ancient scrolls, holding a golden quill",
+      "a tall giraffe character, long neck with brown spot pattern, small ossicones on head, gentle smile, standing gracefully, savanna vibes",
   },
   {
-    slug: "magic-fox",
+    slug: "street-lamp",
     rarity: "rare",
     prompt:
-      "a mystical nine-tailed fox with soft orange fur, each tail tip glowing faintly, casting a spell from a magic book, arcane symbols floating",
+      "a vintage street lamp character, black iron post, warm glowing lantern on top, cute face on the lamp, night sky, small moths around the light",
   },
   {
-    slug: "explorer-penguin",
+    slug: "elephant",
     rarity: "rare",
     prompt:
-      "an adventurous penguin wearing a tiny parka and backpack, holding a travel journal, snowflakes around, determined explorer pose",
+      "a grey elephant character, large floppy ears, long trunk raised up, cute wise eyes, standing firmly, small sparkle near the trunk tip",
   },
   {
-    slug: "sea-seahorse",
+    slug: "t-rex",
     rarity: "rare",
     prompt:
-      "an elegant seahorse librarian with small reading glasses, surrounded by floating underwater books, coral bookshelf nearby, gentle blue glow",
+      "a cute T-Rex dinosaur character, green scaly body, tiny arms, big head with sharp teeth but friendly smile, prehistoric plants around",
   },
   {
-    slug: "lightning-rabbit",
+    slug: "school-bus",
     rarity: "rare",
     prompt:
-      "a fast white rabbit crackling with small lightning bolts, speed-reading a book, pages flipping rapidly, electric blue accents",
+      "a yellow school bus character, SCHOOL BUS sign on top, black wheels, cute face on the front grille, windows with tiny passengers visible",
   },
   {
-    slug: "wind-hawk",
+    slug: "lighthouse",
     rarity: "rare",
     prompt:
-      "a majestic hawk soaring with a book in its talons, wind currents visible, looking down at the world, feathers ruffling",
+      "a red and white striped lighthouse character, bright beam of light from top, standing on rocky shore, waves below, cute face, guiding ships",
   },
   {
-    slug: "dragon-librarian",
+    slug: "sailboat",
     rarity: "rare",
     prompt:
-      "a small friendly dragon wearing librarian glasses, sitting in a cave full of book piles, tiny flame for reading light, green scales",
+      "a wooden sailboat character, white billowing sails, on blue ocean waves, cute face on the hull, seagulls nearby, adventurous spirit",
   },
   {
-    slug: "moonlight-wolf",
+    slug: "hot-air-balloon",
     rarity: "rare",
     prompt:
-      "a silver wolf howling at the moon with a poetry book at its feet, moonbeams illuminating the scene, romantic atmosphere",
+      "a colorful hot air balloon character, rainbow striped balloon, small wicker basket below, floating in blue sky, cute face on the balloon, clouds around",
   },
   {
-    slug: "crystal-deer",
+    slug: "windmill",
     rarity: "rare",
     prompt:
-      "a noble deer with crystalline antlers that have tiny books growing from them, glowing crystal formations, serene woodland pose",
+      "a Dutch windmill character, white body with four spinning blades, tulips at the base, cute face on the body, pastoral setting",
   },
   {
-    slug: "rainbow-snake",
+    slug: "ferris-wheel",
     rarity: "rare",
     prompt:
-      "a coiled serpent with iridescent rainbow scales, wrapped around an ancient tome, seven colors shimmering along its body",
+      "a Ferris wheel character, colorful gondolas, large circular frame, carnival lights, cute face at the center hub, nighttime fairground",
   },
   {
-    slug: "time-crane",
+    slug: "rocket",
     rarity: "rare",
     prompt:
-      "a tall elegant crane with clock patterns on its wings, holding an hourglass and an ancient scroll, timeless wise expression",
+      "a space rocket character, white body with red and blue stripes, flame exhaust at bottom, cute face on the nose cone, stars in background",
   },
   {
-    slug: "petal-butterfly",
+    slug: "apartment",
     rarity: "rare",
     prompt:
-      "a delicate butterfly with wings made of flower petals and book pages, sitting on a poetry book, new petal patterns forming",
+      "a multi-story apartment building character, 7 floors with lit windows, rooftop antenna, cute face on the facade, urban city vibes",
   },
   {
-    slug: "constellation-whale",
+    slug: "palm-tree",
     rarity: "rare",
     prompt:
-      "a small whale breaching with star constellations on its body, spouting stardust instead of water, cosmic ocean setting",
+      "a tall palm tree character, coconuts hanging from top, large green fronds swaying, brown textured trunk, cute face, tropical beach setting",
   },
   {
-    slug: "mist-giraffe",
+    slug: "pirate-ship",
     rarity: "rare",
     prompt:
-      "a tall giraffe with its head reaching into clouds, neck spotted with book patterns, reaching a floating cloud library above",
+      "a pirate ship character, wooden hull, black sails with skull and crossbones, cannon ports, cute face on the bow, ocean waves, treasure vibes",
   },
   {
-    slug: "volcano-salamander",
+    slug: "castle",
     rarity: "rare",
     prompt:
-      "a fiery salamander with small flames on its back, reading passionately, ember particles floating upward, warm red-orange tones",
+      "a medieval castle character, stone walls, two towers with flags, drawbridge, cute face on the main gate, kingdom vibes, small sparkles",
   },
   {
-    slug: "snowflake-polarbear",
+    slug: "blue-whale",
     rarity: "rare",
     prompt:
-      "a white polar bear cub creating snowflakes while reading a winter story, each snowflake unique, ice crystal patterns, cozy scarf",
+      "a majestic blue whale character, enormous body, water spout from blowhole, gentle wise eyes, deep ocean blue, small fish swimming nearby",
   },
   {
-    slug: "golden-eagle",
+    slug: "sphinx",
     rarity: "rare",
     prompt:
-      "a proud golden eagle perched on a mountain peak of books, golden feathers gleaming, surveying knowledge below, majestic pose",
+      "the Great Sphinx character, lion body with human head, ancient stone texture, desert sand, pyramids faintly in background, mysterious wise face",
   },
   {
-    slug: "aurora-reindeer",
+    slug: "pagoda",
     rarity: "rare",
     prompt:
-      "a reindeer with aurora borealis flowing from its antlers, reading a fairy tale book under northern lights, green and purple glow",
+      "a five-story pagoda character, traditional East Asian architecture, curved roofs stacking upward, red and gold colors, cute face, cherry blossom petals",
   },
   {
-    slug: "coral-turtle",
+    slug: "oil-platform",
     rarity: "rare",
     prompt:
-      "an ancient sea turtle with coral and anemones growing on its shell, holding a weathered book, deep ocean sage, barnacle details",
+      "an offshore oil platform character, metal structure on stilts in ocean, crane on top, industrial but cute face, waves below, seagulls",
   },
   {
-    slug: "galaxy-dolphin",
+    slug: "arc-de-triomphe",
     rarity: "rare",
     prompt:
-      "a dolphin leaping through a milky way of stars, cosmic dust trail, carrying a book of universe stories, galactic blue and purple",
+      "the Arc de Triomphe character, grand stone arch, detailed relief carvings, French flag colors accent, cute face on the arch, Parisian atmosphere",
   },
 
   // ==========================================
-  // EPIC (8 characters)
+  // EPIC (8 characters, 5000–9000cm)
   // ==========================================
   {
-    slug: "phoenix-reader",
+    slug: "leaning-tower",
     rarity: "epic",
     prompt:
-      "a majestic phoenix rising from ashes made of book pages, fiery wings spread wide, holding an immortal tome, flames of knowledge, rebirth symbolism",
+      "the Leaning Tower of Pisa character, white marble cylindrical tower, tilting to one side, multiple colonnade levels, cute face, Italian flag, glowing aura",
   },
   {
-    slug: "unicorn-poet",
+    slug: "niagara-falls",
     rarity: "epic",
     prompt:
-      "a noble unicorn with a horn radiating beams of inspiration light, mane flowing with poetry verses, quill pen floating, rainbow prismatic accents",
+      "Niagara Falls character, massive waterfall cascading down, rainbow mist rising, blue-green water, cute face in the falling water, mystical glow, magical atmosphere",
   },
   {
-    slug: "lightning-griffin",
+    slug: "taj-mahal",
     rarity: "epic",
     prompt:
-      "a fierce griffin (half eagle half lion) guardian of a sky library, lightning crackling around it, powerful wings, book clutched in talons",
+      "the Taj Mahal character, white marble domed palace, four minarets, reflecting pool, cute face on the main dome, ethereal moonlight glow, magical",
   },
   {
-    slug: "crystal-dragon",
+    slug: "big-ben",
     rarity: "epic",
     prompt:
-      "a dragon made of crystal and gems, each scale storing a book, prismatic light refracting through its body, ancient library guardian",
+      "Big Ben clock tower character, Gothic architecture, four clock faces showing different times, cute face on the main clock, golden glow, London fog, mystical",
   },
   {
-    slug: "odin-raven",
+    slug: "statue-of-liberty",
     rarity: "epic",
     prompt:
-      "a mythical raven with one glowing eye of knowledge, Norse rune patterns on feathers, perched on an ancient runic book, dark and mystical",
+      "Statue of Liberty character, green copper patina, holding torch high, crown with rays, tablet in other hand, cute face, glowing torch flame, epic aura",
   },
   {
-    slug: "deep-kraken",
+    slug: "pyramid",
     rarity: "epic",
     prompt:
-      "a kraken from the deepest ocean depths, tentacles wrapped around forbidden books, bioluminescent glow, mysterious deep sea ambiance",
+      "the Great Pyramid of Giza character, massive triangular stone structure, desert sand, golden sunlight, cute face on the front, ancient glowing hieroglyphics, mystical eye",
   },
   {
-    slug: "world-tree-spirit",
+    slug: "space-shuttle",
     rarity: "epic",
     prompt:
-      "a spirit of the world tree (Yggdrasil), made of leaves and bark, books growing like fruit from branches, nature and magic intertwined",
+      "a space shuttle character, white orbiter with black heat tiles, in orbit above Earth, cute face on the nose, glowing engine trails, stars and nebula background",
   },
   {
-    slug: "spacetime-sphinx",
+    slug: "eiffel-tower",
     rarity: "epic",
     prompt:
-      "an ancient sphinx with hieroglyphic patterns, riddle symbols floating around it, hourglass embedded in chest, guardian of time and knowledge",
+      "the Eiffel Tower character, iconic iron lattice structure, tapering to top, sparkling lights, cute face on the middle level, Parisian night sky, glowing majestically",
   },
 
   // ==========================================
-  // LEGENDARY (4 characters)
+  // LEGENDARY (4 characters, 10000cm+)
   // ==========================================
   {
-    slug: "sky-whale",
+    slug: "tokyo-tower",
     rarity: "legendary",
     prompt:
-      "a colossal sky whale swimming through clouds, a tiny library built on its back, bookshelves visible, golden light streaming through clouds, majestic and serene, cosmic scale",
+      "Tokyo Tower character, red and white steel tower, glowing brilliantly against night sky, cute face, golden cosmic halo, city lights below, divine presence, star particles swirling",
   },
   {
-    slug: "starlight-reader",
+    slug: "namsan-tower",
     rarity: "legendary",
     prompt:
-      "a legendary reader sitting atop an impossibly tall tower of books reaching the stars, reading by starlight, cosmic backdrop, golden halo of knowledge, ultimate scholar figure",
+      "N Seoul Tower (Namsan Tower) character, iconic observation tower on mountain, love locks at base, cute face, golden radiant glow, Seoul city panorama, divine starlight, cosmic aura",
   },
   {
-    slug: "sage-of-time",
+    slug: "lotte-tower",
     rarity: "legendary",
     prompt:
-      "an immortal sage transcending time, cloaked in flowing robes made of book pages from every era, hourglasses orbiting, past present future merging, divine wisdom aura",
+      "Lotte World Tower character, sleek modern supertall skyscraper, glass facade reflecting sky, cute face, supreme golden glow, clouds parting around it, divine cosmic radiance, star dust",
   },
   {
-    slug: "cosmic-reader",
+    slug: "cloud-castle",
     rarity: "legendary",
     prompt:
-      "the ultimate cosmic reader floating in deep space, surrounded by orbiting books forming a solar system, galaxies in the background, reading the book of the universe, supreme golden glow",
+      "a majestic castle floating above clouds, made of books and light, golden spires reaching into starry cosmos, cute face on the main tower, ultimate divine glow, galaxies swirling, rainbow bridge below",
   },
 ];
 

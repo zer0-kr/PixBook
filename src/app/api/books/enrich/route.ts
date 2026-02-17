@@ -226,7 +226,7 @@ async function findBestMatch(
   book: BookRow,
   timeBudgetExceeded: boolean
 ): Promise<SearchResult | null> {
-  let best: SearchResult | null = null;
+  let best: SearchResult | null = null as SearchResult | null;
 
   const titleLevels = normalizeTitleForSearch(book.title);
   const level1 = titleLevels[0] ?? book.title;
