@@ -10,30 +10,12 @@ export async function setActiveCharacterAction(characterId: string): Promise<boo
   if (!user) return false;
 
   const supabase = await createClient();
+  const { error } = await supabase.rpc("set_active_character", {
+    p_user_id: user.id,
+    p_character_id: characterId,
+  });
 
-  // 기존 활성 캐릭터 해제
-  await supabase
-    .from("user_characters")
-    .update({ is_active: false })
-    .eq("user_id", user.id)
-    .eq("is_active", true);
-
-  // 새 캐릭터 활성화
-  const { error: activateError } = await supabase
-    .from("user_characters")
-    .update({ is_active: true })
-    .eq("user_id", user.id)
-    .eq("character_id", characterId);
-
-  if (activateError) return false;
-
-  // 프로필 업데이트
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ active_character_id: characterId })
-    .eq("id", user.id);
-
-  return !profileError;
+  return !error;
 }
 
 export async function unlockPendingCharactersAction(
