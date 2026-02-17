@@ -44,10 +44,7 @@ export default function TowerScene({
   );
 
   return (
-    <div
-      className="relative w-full overflow-auto border-3 border-brown"
-      style={{ height: "100%" }}
-    >
+    <div className="relative w-full flex-1 min-h-0 overflow-auto border-3 border-brown">
       <div
         className="relative w-full"
         style={{

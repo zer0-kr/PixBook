@@ -54,7 +54,7 @@ export default function TowerPageView({
   return (
     <div className="flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:flex-row">
       {/* Tower scene (main area) */}
-      <div className="flex-1">
+      <div className="flex min-h-0 flex-1 flex-col">
         {/* Zoom controls */}
         <div className="mb-2 flex items-center gap-2">
           <PixelButton size="sm" variant="secondary" onClick={zoomOut} disabled={zoom <= MIN_ZOOM}>
