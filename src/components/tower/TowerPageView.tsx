@@ -78,24 +78,20 @@ export default function TowerPageView({
 
       {/* Stats sidebar */}
       <div className="w-full shrink-0 lg:w-72">
-        {/* Year filter tabs */}
-        <div className="mb-2 flex flex-wrap gap-1">
-          <button
-            className={`pixel-btn px-2 py-1 text-xs font-bold ${selectedYear === "all" ? "bg-pixel-blue text-white" : "bg-cream-dark text-brown"}`}
-            onClick={() => setSelectedYear("all")}
-          >
-            전체
-          </button>
+        {/* Year filter dropdown */}
+        <select
+          value={selectedYear}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSelectedYear(v === "all" ? "all" : Number(v));
+          }}
+          className="pixel-btn mb-2 bg-cream-dark px-2 py-1 text-xs font-bold text-brown"
+        >
+          <option value="all">전체</option>
           {years.map((y) => (
-            <button
-              key={y}
-              className={`pixel-btn px-2 py-1 text-xs font-bold ${selectedYear === y ? "bg-pixel-blue text-white" : "bg-cream-dark text-brown"}`}
-              onClick={() => setSelectedYear(y)}
-            >
-              {y}
-            </button>
+            <option key={y} value={y}>{y}년</option>
           ))}
-        </div>
+        </select>
 
         <TowerStats
           totalHeightCm={totalHeightCm}

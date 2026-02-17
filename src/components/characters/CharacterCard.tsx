@@ -99,6 +99,7 @@ export default function CharacterCard({
             src={character.sprite_url}
             alt={character.name}
             fill
+            unoptimized
             className="pixel-art object-contain p-2"
             onError={() => setImgError(true)}
           />
