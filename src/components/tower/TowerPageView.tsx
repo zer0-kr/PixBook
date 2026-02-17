@@ -52,7 +52,7 @@ export default function TowerPageView({
   }, [filteredBooks]);
 
   return (
-    <div className="flex min-h-[calc(100dvh-4rem)] flex-col gap-4 p-4 lg:flex-row">
+    <div className="flex h-[calc(100dvh-8rem)] flex-col gap-4 p-4 md:h-[calc(100dvh-4rem)] lg:flex-row">
       {/* Tower scene (main area) */}
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Zoom controls */}
