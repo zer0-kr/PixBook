@@ -2,17 +2,11 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { ChangeEvent } from "react";
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
-import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import { logError } from "@/lib/logger";
 import { SPINE_COLORS } from "@/lib/constants";
 import { revalidateLibrary } from "@/lib/actions/revalidate";
-import type { UserBook, ReadingStatus, Character } from "@/types";
-
-interface TowerHeightResult {
-  tower_height: number;
-  books_completed: number;
-  pages_read: number;
-}
+import { useCharacterUnlock } from "./useCharacterUnlock";
+import type { UserBook, ReadingStatus } from "@/types";
 
 interface UseReadingRecordParams {
   userBook: UserBook;
@@ -27,13 +21,12 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
   const [endDate, setEndDate] = useState(userBook.end_date ?? "");
   const [spineColor, setSpineColor] = useState(userBook.spine_color ?? SPINE_COLORS[0]);
   const [isSaving, setIsSaving] = useState(false);
-  const [unlockedCharacters, setUnlockedCharacters] = useState<Character[]>([]);
-  const [showUnlockIndex, setShowUnlockIndex] = useState<number>(-1);
 
   const { toast } = useToast();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingUpdatesRef = useRef<Partial<UserBook> | null>(null);
   const mountedRef = useRef(true);
+  const { recalculateTowerHeight, unlockedCharacter, handleDismissUnlock } = useCharacterUnlock(mountedRef);
 
   // Save changes, returns true on success
   // When called during unmount flush, mountedRef prevents setState on unmounted component
@@ -90,45 +83,6 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
       }
     };
   }, [saveChanges]);
-
-  // Recalculate tower height when status changes to completed (atomic RPC)
-  const recalculateTowerHeight = useCallback(async () => {
-    try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || !mountedRef.current) return;
-
-      const { data, error } = await supabase.rpc("recalculate_tower_height", {
-        p_user_id: user.id,
-      });
-
-      if (error) {
-        logError("Error recalculating tower height:", error);
-        return;
-      }
-
-      const result = (data as TowerHeightResult[] | null)?.[0];
-      if (!result) return;
-
-      const towerHeight = Number(result.tower_height);
-
-      // Check for newly unlocked characters
-      const newlyUnlocked = await checkAndUnlockCharacters(
-        supabase,
-        user.id,
-        towerHeight
-      );
-
-      if (newlyUnlocked.length > 0 && mountedRef.current) {
-        setUnlockedCharacters(newlyUnlocked);
-        setShowUnlockIndex(0);
-      }
-    } catch (err) {
-      logError("Error recalculating tower:", err);
-    }
-  }, []);
 
   const handleStatusChange = useCallback(
     async (newStatus: ReadingStatus) => {
@@ -228,22 +182,6 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
     },
     [debouncedSave]
   );
-
-  // Derived: current character to show in unlock animation, or null
-  const unlockedCharacter =
-    showUnlockIndex >= 0 && showUnlockIndex < unlockedCharacters.length
-      ? unlockedCharacters[showUnlockIndex]
-      : null;
-
-  const handleDismissUnlock = useCallback(() => {
-    const nextIndex = showUnlockIndex + 1;
-    if (nextIndex < unlockedCharacters.length) {
-      setShowUnlockIndex(nextIndex);
-    } else {
-      setShowUnlockIndex(-1);
-      setUnlockedCharacters([]);
-    }
-  }, [showUnlockIndex, unlockedCharacters.length]);
 
   const isRatingEditable = status === "completed";
 
