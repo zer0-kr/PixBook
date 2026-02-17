@@ -77,6 +77,22 @@ export const UI_TEXT = {
   statsHeader: "통계",
   charactersHeader: "캐릭터 도감",
 
+  // View modes
+  viewModeGrid: "그리드 뷰",
+  viewModeList: "리스트 뷰",
+  viewModeCover: "커버 뷰",
+
+  // Tower year filter
+  yearFilterAll: "전체",
+
+  // Navigation
+  navLibrary: "서재",
+  navSearch: "검색",
+  navTower: "책 탑",
+  navCharacters: "캐릭터",
+  navStats: "통계",
+  navProfile: "프로필",
+
   // Google OAuth
   googleLoginButton: "Google로 로그인",
 

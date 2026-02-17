@@ -28,19 +28,23 @@ test.describe("서재 페이지", () => {
       await addBookToLibrary(bookId2, { reading_status: "reading" });
     });
 
-    test("책 목록이 탭 카운트와 함께 표시된다", async ({ page }) => {
+    test("책 목록이 탭과 함께 표시된다", async ({ page }) => {
       await page.goto("/library");
 
-      await expect(page.getByText("전체 (2)")).toBeVisible({ timeout: 15000 });
-      await expect(page.getByText("읽고싶은 (1)")).toBeVisible();
-      await expect(page.getByText("읽는중 (1)")).toBeVisible();
+      // Wait for books to load (count shown as separate text)
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
+
+      // Tabs should be visible
+      await expect(page.getByRole("tab", { name: UI_TEXT.tabAll })).toBeVisible();
+      await expect(page.getByRole("tab", { name: UI_TEXT.tabWantToRead })).toBeVisible();
+      await expect(page.getByRole("tab", { name: UI_TEXT.tabReading })).toBeVisible();
     });
 
     test("탭으로 필터링할 수 있다", async ({ page }) => {
       await page.goto("/library");
-      await expect(page.getByText("전체 (2)")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
 
-      await page.getByText("읽고싶은 (1)").click();
+      await page.getByRole("tab", { name: UI_TEXT.tabWantToRead }).click();
 
       // Should show 1 book
       await expect(page.getByText("1권")).toBeVisible();
@@ -48,24 +52,52 @@ test.describe("서재 페이지", () => {
 
     test("빈 탭 메시지가 표시된다", async ({ page }) => {
       await page.goto("/library");
-      await expect(page.getByText("전체 (2)")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
 
-      await page.getByText("완독 (0)").click();
+      await page.getByRole("tab", { name: UI_TEXT.tabCompleted }).click();
 
       await expect(page.getByText(UI_TEXT.emptyTab)).toBeVisible();
     });
 
     test("정렬을 변경할 수 있다", async ({ page }) => {
       await page.goto("/library");
-      await expect(page.getByText("전체 (2)")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
 
       const sortSelect = page.locator("select");
       await sortSelect.selectOption("title");
     });
 
+    test("뷰 모드를 전환할 수 있다 (그리드→리스트→커버)", async ({ page }) => {
+      await page.goto("/library");
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
+
+      // Grid view button should be active by default (has bg-pixel-blue)
+      const gridBtn = page.getByLabel(UI_TEXT.viewModeGrid);
+      const listBtn = page.getByLabel(UI_TEXT.viewModeList);
+      const coverBtn = page.getByLabel(UI_TEXT.viewModeCover);
+
+      await expect(gridBtn).toBeVisible();
+      await expect(gridBtn).toHaveClass(/bg-pixel-blue/);
+
+      // Switch to list view
+      await listBtn.click();
+      await expect(listBtn).toHaveClass(/bg-pixel-blue/);
+      // List layout uses flex-col (use .first() to avoid matching toast container)
+      await expect(page.locator("main .flex.flex-col.gap-2").first()).toBeVisible();
+      // Books should still be visible as links
+      await expect(page.locator("a[href*='/book/']").first()).toBeVisible();
+
+      // Switch to cover view
+      await coverBtn.click();
+      await expect(coverBtn).toHaveClass(/bg-pixel-blue/);
+      // Cover layout uses grid-cols-2
+      await expect(page.locator(".grid.grid-cols-2")).toBeVisible();
+      await expect(page.locator("a[href*='/book/']").first()).toBeVisible();
+    });
+
     test("책 카드 클릭 시 상세 페이지로 이동한다", async ({ page }) => {
       await page.goto("/library");
-      await expect(page.getByText("전체 (2)")).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
 
       // Click the first book card link
       const bookCard = page.locator("a[href*='/book/']").first();
