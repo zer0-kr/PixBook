@@ -174,10 +174,12 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         return;
       }
 
-      // Recalculate tower when completed
+      // Recalculate tower when completed or leaving completed
       if (newStatus === "completed") {
         await recalculateTowerHeight();
         toast("success", "완독을 축하합니다! 탑이 높아졌어요!");
+      } else if (prevStatus === "completed") {
+        await recalculateTowerHeight();
       }
     },
     [status, rating, startDate, endDate, saveChanges, recalculateTowerHeight, toast]

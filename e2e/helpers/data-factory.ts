@@ -110,7 +110,7 @@ export async function addCompletedBook(
     .single();
 
   if (profile) {
-    const spineHeight = Math.round(data.page_count * 0.04);
+    const spineHeight = Math.round(data.page_count * 0.06);
     await supabase
       .from("profiles")
       .update({
@@ -122,35 +122,6 @@ export async function addCompletedBook(
   }
 
   return userBook!.id;
-}
-
-export async function unlockCharactersForTest(
-  towerHeightCm: number
-): Promise<{ id: string; name: string }[]> {
-  const supabase = getAdminClient();
-  const userId = await getTestUserId();
-  if (!userId) throw new Error("Test user not found");
-
-  const { data: characters, error } = await supabase
-    .from("characters")
-    .select("id, name")
-    .lte("unlock_height_cm", towerHeightCm)
-    .order("unlock_height_cm", { ascending: true });
-
-  if (error || !characters?.length)
-    throw new Error(`Failed to fetch characters: ${error?.message}`);
-
-  await supabase
-    .from("user_characters")
-    .upsert(
-      characters.map((c) => ({
-        user_id: userId,
-        character_id: c.id,
-      })),
-      { onConflict: "user_id,character_id", ignoreDuplicates: true }
-    );
-
-  return characters;
 }
 
 export async function cleanupTestUserData(): Promise<void> {
