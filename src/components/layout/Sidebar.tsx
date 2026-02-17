@@ -10,11 +10,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/library", label: "서재", icon: "📚" },
   { href: "/search", label: "검색", icon: "🔍" },
+  { href: "/stats", label: "통계", icon: "📊" },
+  { href: "/library", label: "서재", icon: "📚" },
   { href: "/tower", label: "책 탑", icon: "🏗️" },
   { href: "/characters", label: "캐릭터", icon: "👾" },
-  { href: "/stats", label: "통계", icon: "📊" },
   { href: "/profile", label: "프로필", icon: "👤" },
 ];
 
