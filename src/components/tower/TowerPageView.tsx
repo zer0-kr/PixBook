@@ -54,7 +54,7 @@ export default function TowerPageView({
   return (
     <div className="flex h-[calc(100dvh-8rem)] flex-col gap-4 p-4 md:h-[calc(100dvh-4rem)] lg:flex-row">
       {/* Tower scene (main area) */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      <div className="order-2 flex min-h-0 flex-1 flex-col lg:order-1">
         {/* Zoom controls */}
         <div className="mb-2 flex items-center gap-2">
           <PixelButton size="sm" variant="secondary" onClick={zoomOut} disabled={zoom <= MIN_ZOOM}>
@@ -77,7 +77,7 @@ export default function TowerPageView({
       </div>
 
       {/* Stats sidebar */}
-      <div className="w-full shrink-0 lg:w-72">
+      <div className="order-1 w-full shrink-0 lg:order-2 lg:w-72">
         {/* Year filter dropdown */}
         <select
           value={selectedYear}
