@@ -52,6 +52,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
               size="sm"
               variant={status === opt.key ? "primary" : "secondary"}
               onClick={() => handleStatusChange(opt.key)}
+              disabled={isSaving}
               className={
                 status === opt.key ? opt.color : ""
               }

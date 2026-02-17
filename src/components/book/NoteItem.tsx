@@ -105,7 +105,7 @@ export default function NoteItem({
   return (
     <div className="pixel-card-static p-3">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm text-brown whitespace-pre-wrap flex-1">
+        <p className="text-sm text-brown whitespace-pre-wrap break-words flex-1">
           {note.content}
         </p>
         <div className="flex gap-1 shrink-0">

@@ -82,6 +82,9 @@ export default function ProfilePageView({
         toast("error", "CSV 파일을 읽을 수 없습니다");
       }
     };
+    reader.onerror = () => {
+      toast("error", "파일을 읽을 수 없습니다");
+    };
     reader.readAsText(file, "utf-8");
     // Reset so same file can be selected again
     e.target.value = "";
