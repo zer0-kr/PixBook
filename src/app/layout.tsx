@@ -30,6 +30,9 @@ const galmuri = localFont({
 export const metadata: Metadata = {
   title: "픽북 - 나만의 독서 타워",
   description: "책을 읽고, 탑을 쌓고, 캐릭터를 모으세요!",
+  other: {
+    "theme-color": "#FFF8E7",
+  },
 };
 
 export default function RootLayout({
