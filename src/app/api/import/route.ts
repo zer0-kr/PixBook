@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
+import { logError } from "@/lib/logger";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import type { ReadingStatus } from "@/types";
 
@@ -137,8 +138,9 @@ export async function POST(request: NextRequest) {
         });
 
       if (insertBooksError) {
+        logError("Import: book insert failed", insertBooksError);
         return NextResponse.json(
-          { error: "책 일괄 저장 실패", detail: insertBooksError.message },
+          { error: "책 일괄 저장 실패" },
           { status: 500 }
         );
       }
@@ -150,8 +152,9 @@ export async function POST(request: NextRequest) {
         .in("isbn13", uniqueIsbns);
 
       if (booksError || !books) {
+        logError("Import: book ID lookup failed", booksError);
         return NextResponse.json(
-          { error: "책 ID 조회 실패", detail: booksError?.message },
+          { error: "책 ID 조회 실패" },
           { status: 500 }
         );
       }
@@ -204,7 +207,8 @@ export async function POST(request: NextRequest) {
           .insert(newUserBooks);
 
         if (insertError) {
-          errors.push(`독서 기록 일괄 저장 실패: ${insertError.message}`);
+          logError("Import: user_books insert failed", insertError);
+          errors.push("독서 기록 일괄 저장 실패");
         } else {
           imported = newUserBooks.length;
         }

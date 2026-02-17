@@ -294,7 +294,7 @@ async function findBestMatch(
     }
 
     // If we already have an acceptable match, no need to try further strategies
-    if (best && best.score >= ACCEPT_THRESHOLD) continue;
+    if (best && best.score >= ACCEPT_THRESHOLD) break;
   }
 
   return best;

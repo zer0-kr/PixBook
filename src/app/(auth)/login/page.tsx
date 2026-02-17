@@ -43,17 +43,21 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setError(null);
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/callback`,
-      },
-    });
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/callback`,
+        },
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+      }
+    } catch {
+      setError("로그인 중 문제가 발생했습니다. 다시 시도해 주세요.");
     }
   };
 
