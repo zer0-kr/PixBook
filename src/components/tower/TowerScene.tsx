@@ -1,15 +1,13 @@
 "use client";
 
-import type { UserBook, Character } from "@/types";
+import type { UserBook } from "@/types";
 import { calculateBookHeight, cmToPixels, formatHeight } from "@/lib/tower/calculator";
 import { TOWER_MILESTONES } from "@/lib/tower/constants";
 import BookTower from "./BookTower";
-import CharacterOnTower from "./CharacterOnTower";
 
 interface TowerSceneProps {
   completedBooks: UserBook[];
   totalHeightCm: number;
-  activeCharacter: Character | null;
   zoom: number;
 }
 
@@ -23,7 +21,6 @@ const GROUND_HEIGHT = 40;
 export default function TowerScene({
   completedBooks,
   totalHeightCm,
-  activeCharacter,
   zoom,
 }: TowerSceneProps) {
   // Total tower height in px (from book calculations)
@@ -96,12 +93,6 @@ export default function TowerScene({
           className="absolute bottom-0 left-1/2 flex -translate-x-1/2 flex-col items-center"
           style={{ paddingBottom: GROUND_HEIGHT }}
         >
-          {/* Character on top */}
-          <CharacterOnTower
-            character={activeCharacter}
-            towerTopPosition={towerHeightPx}
-          />
-
           {/* Book stack */}
           <BookTower completedBooks={completedBooks} zoom={zoom} />
         </div>

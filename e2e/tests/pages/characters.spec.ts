@@ -1,10 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { UI_TEXT, TEST_BOOK } from "../../helpers/test-data";
-import {
-  cleanupTestUserData,
-  addCompletedBook,
-  unlockCharactersForTest,
-} from "../../helpers/data-factory";
+import { UI_TEXT } from "../../helpers/test-data";
 
 test.describe("캐릭터 페이지", () => {
   test("캐릭터 도감 페이지가 로딩된다", async ({ page }) => {
@@ -27,9 +22,9 @@ test.describe("캐릭터 페이지", () => {
     });
 
     // Character cards should exist in the grid
-    // Cards are rendered as buttons
+    // Cards are rendered as divs with rarity borders
     const characterCards = page.locator(
-      'button[class*="border-rarity"], button[class*="pixel-border"]'
+      'div[class*="border-rarity"]'
     );
     // At minimum there should be some characters defined in the system
     await expect(characterCards.first()).toBeVisible({ timeout: 10000 });
@@ -72,60 +67,5 @@ test.describe("캐릭터 페이지", () => {
     // Unlock height text (e.g., "높이 XXcm에서 해금")
     const unlockText = page.getByText(/에서 해금/);
     await expect(unlockText.first()).toBeVisible();
-  });
-});
-
-test.describe("캐릭터 활성화", () => {
-  test.beforeEach(async () => {
-    await cleanupTestUserData();
-    await addCompletedBook(TEST_BOOK);
-    await unlockCharactersForTest(23);
-  });
-
-  test("해금된 캐릭터를 대표 캐릭터로 설정할 수 있다", async ({ page }) => {
-    await page.goto("/characters");
-    await expect(page.getByText(UI_TEXT.charactersHeader)).toBeVisible({
-      timeout: 15000,
-    });
-
-    const unlockedCard = page
-      .locator('button[class*="border-rarity"]:not(:disabled)')
-      .first();
-    await expect(unlockedCard).toBeVisible({ timeout: 10000 });
-    await unlockedCard.click();
-
-    await expect(
-      page.getByText(/대표 캐릭터로 설정했습니다/)
-    ).toBeVisible({ timeout: 10000 });
-
-    await expect(unlockedCard.getByText("대표")).toBeVisible();
-  });
-
-  test("다른 캐릭터로 대표를 변경할 수 있다", async ({ page }) => {
-    await page.goto("/characters");
-    await expect(page.getByText(UI_TEXT.charactersHeader)).toBeVisible({
-      timeout: 15000,
-    });
-
-    const cards = page.locator(
-      'button[class*="border-rarity"]:not(:disabled)'
-    );
-    await expect(cards.first()).toBeVisible({ timeout: 10000 });
-
-    // 첫 번째 캐릭터 활성화
-    await cards.first().click();
-    await expect(
-      page.getByText(/대표 캐릭터로 설정했습니다/)
-    ).toBeVisible({ timeout: 10000 });
-    await expect(cards.first().getByText("대표")).toBeVisible();
-
-    // 두 번째 캐릭터로 변경
-    await cards.nth(1).click();
-    await expect(
-      page.getByText(/대표 캐릭터로 설정했습니다/)
-    ).toBeVisible({ timeout: 10000 });
-
-    await expect(cards.nth(1).getByText("대표")).toBeVisible();
-    await expect(cards.first().getByText("대표")).not.toBeVisible();
   });
 });

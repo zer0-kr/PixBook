@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import type { UserBook, Character } from "@/types";
+import type { UserBook } from "@/types";
 import { BASE_CM_PER_PAGE } from "@/lib/tower/calculator";
 import PixelButton from "@/components/ui/PixelButton";
 import TowerScene from "./TowerScene";
@@ -9,7 +9,6 @@ import TowerStats from "./TowerStats";
 
 interface TowerPageViewProps {
   completedBooks: UserBook[];
-  activeCharacter: Character | null;
 }
 
 const MIN_ZOOM = 0.5;
@@ -19,7 +18,6 @@ const DEFAULT_ZOOM = 1;
 
 export default function TowerPageView({
   completedBooks,
-  activeCharacter,
 }: TowerPageViewProps) {
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [selectedYear, setSelectedYear] = useState<number | "all">("all");
@@ -71,7 +69,6 @@ export default function TowerPageView({
         <TowerScene
           completedBooks={filteredBooks}
           totalHeightCm={totalHeightCm}
-          activeCharacter={activeCharacter}
           zoom={zoom}
         />
       </div>
@@ -97,7 +94,6 @@ export default function TowerPageView({
           totalHeightCm={totalHeightCm}
           totalBooksCompleted={totalBooksCompleted}
           totalPagesRead={totalPagesRead}
-          activeCharacter={activeCharacter}
           selectedYear={selectedYear}
         />
       </div>

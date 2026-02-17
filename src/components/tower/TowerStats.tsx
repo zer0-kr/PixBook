@@ -1,6 +1,5 @@
 "use client";
 
-import type { Character } from "@/types";
 import { formatHeight } from "@/lib/tower/calculator";
 import { getNextMilestone } from "@/lib/tower/constants";
 import PixelCard from "@/components/ui/PixelCard";
@@ -10,7 +9,6 @@ interface TowerStatsProps {
   totalHeightCm: number;
   totalBooksCompleted: number;
   totalPagesRead: number;
-  activeCharacter: Character | null;
   selectedYear: number | "all";
 }
 
@@ -18,7 +16,6 @@ export default function TowerStats({
   totalHeightCm,
   totalBooksCompleted,
   totalPagesRead,
-  activeCharacter,
   selectedYear,
 }: TowerStatsProps) {
   const nextMilestone = getNextMilestone(totalHeightCm);
@@ -34,10 +31,6 @@ export default function TowerStats({
         <StatItem label="총 높이" value={formatHeight(totalHeightCm)} />
         <StatItem label="완독 수" value={`${totalBooksCompleted}권`} />
         <StatItem label="읽은 페이지" value={`${totalPagesRead.toLocaleString()}p`} />
-        <StatItem
-          label="활성 캐릭터"
-          value={activeCharacter?.name ?? "없음"}
-        />
       </div>
 
       {/* Next milestone progress */}

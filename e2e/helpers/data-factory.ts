@@ -146,7 +146,6 @@ export async function unlockCharactersForTest(
       characters.map((c) => ({
         user_id: userId,
         character_id: c.id,
-        is_active: false,
       })),
       { onConflict: "user_id,character_id", ignoreDuplicates: true }
     );
@@ -190,7 +189,6 @@ export async function cleanupTestUserData(): Promise<void> {
       tower_height_cm: 0,
       total_books_completed: 0,
       total_pages_read: 0,
-      active_character_id: null,
     })
     .eq("id", userId);
 }

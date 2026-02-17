@@ -53,7 +53,6 @@ export async function checkAndUnlockCharacters(
   const insertRows = newlyUnlockable.map((c: Character) => ({
     user_id: userId,
     character_id: c.id,
-    is_active: false,
   }));
 
   const { error: insertError } = await supabase
@@ -63,28 +62,6 @@ export async function checkAndUnlockCharacters(
   if (insertError) {
     logError("Error inserting user characters:", insertError);
     return [];
-  }
-
-  // 5. Auto-set active character if none is set
-  const { data: currentProfile } = await supabase
-    .from("profiles")
-    .select("active_character_id")
-    .eq("id", userId)
-    .single();
-
-  if (!currentProfile?.active_character_id) {
-    const firstCharId = allUnlockable[0].id;
-
-    await supabase
-      .from("user_characters")
-      .update({ is_active: true })
-      .eq("user_id", userId)
-      .eq("character_id", firstCharId);
-
-    await supabase
-      .from("profiles")
-      .update({ active_character_id: firstCharId })
-      .eq("id", userId);
   }
 
   return newlyUnlockable as Character[];

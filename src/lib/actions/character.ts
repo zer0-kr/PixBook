@@ -5,19 +5,6 @@ import { getUser } from "@/lib/supabase/get-user";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import type { UserCharacter } from "@/types";
 
-export async function setActiveCharacterAction(characterId: string): Promise<boolean> {
-  const user = await getUser();
-  if (!user) return false;
-
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("set_active_character", {
-    p_user_id: user.id,
-    p_character_id: characterId,
-  });
-
-  return !error;
-}
-
 export async function unlockPendingCharactersAction(
   towerHeightCm: number
 ): Promise<UserCharacter[] | null> {

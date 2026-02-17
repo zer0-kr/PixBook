@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUser } from "@/lib/supabase/get-user";
 import { Header } from "@/components/layout";
 import { ProfilePageView } from "@/components/profile";
-import type { Profile, Character } from "@/types";
+import type { Profile } from "@/types";
 
 export const metadata = {
   title: "프로필 | 픽북",
@@ -13,11 +13,9 @@ export const metadata = {
 export default async function ProfilePage() {
   const supabase = await createClient();
 
-  // Fetch getUser, profile, and all characters in parallel
-  const [user, { data: profileData }, { data: allCharacters }] = await Promise.all([
+  const [user, { data: profileData }] = await Promise.all([
     getUser(),
     supabase.from("profiles").select("*").single(),
-    supabase.from("characters").select("id, name, sprite_url"),
   ]);
 
   if (!user) {
@@ -30,19 +28,10 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  // Find active character from pre-fetched list
-  const activeCharacter: Character | null = profile.active_character_id
-    ? (allCharacters?.find((c) => c.id === profile.active_character_id) as Character | undefined) ?? null
-    : null;
-
   return (
     <>
       <Header title="프로필" />
-      <ProfilePageView
-        profile={profile}
-        email={user.email ?? ""}
-        activeCharacter={activeCharacter}
-      />
+      <ProfilePageView profile={profile} email={user.email ?? ""} />
     </>
   );
 }

@@ -37,8 +37,6 @@ const RARITY_LABELS: Record<CharacterRarity, string> = {
 interface CharacterCardProps {
   character: Character;
   isUnlocked: boolean;
-  isActive: boolean;
-  onSelect: (characterId: string) => void;
 }
 
 /**
@@ -75,22 +73,16 @@ function PlaceholderSprite({
 export default function CharacterCard({
   character,
   isUnlocked,
-  isActive,
-  onSelect,
 }: CharacterCardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
-    <button
-      onClick={() => isUnlocked && onSelect(character.id)}
-      disabled={!isUnlocked}
-      className={`group relative flex flex-col overflow-hidden border-3 transition-all ${
+    <div
+      className={`group relative flex flex-col overflow-hidden border-3 ${
         RARITY_BORDER_COLORS[character.rarity]
       } ${isUnlocked ? RARITY_GLOW[character.rarity] : ""} ${
-        isUnlocked
-          ? "cursor-pointer hover:translate-y-[-2px]"
-          : "cursor-default opacity-80"
-      } ${isActive ? "ring-2 ring-pixel-gold ring-offset-2 ring-offset-cream" : ""}`}
+        isUnlocked ? "" : "opacity-80"
+      }`}
     >
       {/* Sprite area */}
       <div className="relative aspect-square w-full overflow-hidden bg-cream-dark">
@@ -122,13 +114,6 @@ export default function CharacterCard({
             <span className="font-pixel text-xl text-white/80">?</span>
           </div>
         )}
-
-        {/* Active indicator */}
-        {isActive && (
-          <div className="absolute right-1 top-1 rounded-sm bg-pixel-gold px-1.5 py-0.5 text-[10px] font-bold text-brown shadow-pixel-sm">
-            대표
-          </div>
-        )}
       </div>
 
       {/* Info area */}
@@ -156,6 +141,6 @@ export default function CharacterCard({
           </PixelBadge>
         </div>
       </div>
-    </button>
+    </div>
   );
 }

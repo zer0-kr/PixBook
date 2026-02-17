@@ -14,18 +14,16 @@ import {
   type ImportSummary,
 } from "@/lib/csv/parse-import";
 import EnrichmentProgress from "./EnrichmentProgress";
-import type { Profile, Character } from "@/types";
+import type { Profile } from "@/types";
 
 interface ProfilePageViewProps {
   profile: Profile;
   email: string;
-  activeCharacter: Character | null;
 }
 
 export default function ProfilePageView({
   profile,
   email,
-  activeCharacter,
 }: ProfilePageViewProps) {
   const [nickname, setNickname] = useState(profile.nickname ?? "");
   const [isSaving, setIsSaving] = useState(false);
@@ -221,34 +219,6 @@ export default function ProfilePageView({
           </div>
         </div>
       </PixelCard>
-
-      {/* Active Character */}
-      {activeCharacter && (
-        <PixelCard hoverable={false}>
-          <h3 className="font-pixel text-xs text-brown mb-4">활성 캐릭터</h3>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 border-3 border-brown bg-cream-dark flex items-center justify-center pixel-art">
-              {activeCharacter.sprite_url ? (
-                <img
-                  src={activeCharacter.sprite_url}
-                  alt={activeCharacter.name}
-                  className="w-12 h-12 pixel-art"
-                />
-              ) : (
-                <span className="text-2xl">🐾</span>
-              )}
-            </div>
-            <div>
-              <div className="font-bold text-brown">
-                {activeCharacter.name}
-              </div>
-              <div className="text-xs text-brown-lighter">
-                {activeCharacter.description}
-              </div>
-            </div>
-          </div>
-        </PixelCard>
-      )}
 
       {/* Data Export */}
       <PixelCard hoverable={false}>

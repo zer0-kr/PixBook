@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PixelCard, PixelProgressBar, PixelBadge } from "@/components/ui";
-import { useToast } from "@/components/ui/PixelToast";
 import { formatHeight } from "@/lib/tower/calculator";
-import { setActiveCharacterAction, unlockPendingCharactersAction } from "@/lib/actions/character";
+import { unlockPendingCharactersAction } from "@/lib/actions/character";
 import CharacterCard from "./CharacterCard";
 import type { Character, UserCharacter, Profile, CharacterRarity } from "@/types";
 
@@ -35,11 +34,7 @@ export default function CharacterPageView({
   towerHeightCm,
 }: CharacterPageViewProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
-  const [activeCharId, setActiveCharId] = useState<string | null>(
-    profile.active_character_id
-  );
   const [userCharacters, setUserCharacters] = useState(initialUserCharacters);
-  const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
@@ -82,20 +77,6 @@ export default function CharacterPageView({
     }
     return stats;
   }, [characters, unlockedIds]);
-
-  const handleSelectCharacter = useCallback(
-    async (characterId: string) => {
-      const ok = await setActiveCharacterAction(characterId);
-      if (ok) {
-        setActiveCharId(characterId);
-        const char = characters.find((c) => c.id === characterId);
-        toast("success", `${char?.name ?? "캐릭터"}를 대표 캐릭터로 설정했습니다!`);
-      } else {
-        toast("error", "대표 캐릭터 설정에 실패했습니다.");
-      }
-    },
-    [characters, toast]
-  );
 
   return (
     <div className="space-y-6">
@@ -168,8 +149,6 @@ export default function CharacterPageView({
             key={character.id}
             character={character}
             isUnlocked={unlockedIds.has(character.id)}
-            isActive={activeCharId === character.id}
-            onSelect={handleSelectCharacter}
           />
         ))}
       </div>

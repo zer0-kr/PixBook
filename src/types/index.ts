@@ -8,7 +8,6 @@ export interface Profile {
   tower_height_cm: number;
   total_books_completed: number;
   total_pages_read: number;
-  active_character_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -66,7 +65,6 @@ export interface UserCharacter {
   id: string;
   user_id: string;
   character_id: string;
-  is_active: boolean;
   unlocked_at: string;
   character?: Character;
 }
