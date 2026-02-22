@@ -60,7 +60,6 @@ export default async function CharactersPage() {
           userCharacters={(userCharacters as unknown as UserCharacter[]) ?? []}
           profile={{ ...(profile as Profile), tower_height_cm: towerHeightCm }}
           pendingUnlock={hasUnlockable}
-          towerHeightCm={towerHeightCm}
         />
       </div>
     </>

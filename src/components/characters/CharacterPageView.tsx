@@ -24,7 +24,6 @@ interface CharacterPageViewProps {
   userCharacters: UserCharacter[];
   profile: Profile;
   pendingUnlock?: boolean;
-  towerHeightCm?: number;
 }
 
 export default function CharacterPageView({
@@ -32,7 +31,6 @@ export default function CharacterPageView({
   userCharacters: initialUserCharacters,
   profile,
   pendingUnlock,
-  towerHeightCm,
 }: CharacterPageViewProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [userCharacters, setUserCharacters] = useState(initialUserCharacters);
@@ -40,15 +38,15 @@ export default function CharacterPageView({
   const router = useRouter();
 
   useEffect(() => {
-    if (!pendingUnlock || !towerHeightCm) return;
+    if (!pendingUnlock) return;
     let cancelled = false;
-    unlockPendingCharactersAction(towerHeightCm).then((result) => {
+    unlockPendingCharactersAction().then((result) => {
       if (cancelled || !result) return;
       setUserCharacters(result);
       router.refresh();
     });
     return () => { cancelled = true; };
-  }, [pendingUnlock, towerHeightCm, router]);
+  }, [pendingUnlock, router]);
 
   const unlockedIds = useMemo(
     () => new Set(userCharacters.map((uc) => uc.character_id)),

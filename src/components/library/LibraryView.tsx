@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import type { UserBook, ReadingStatus } from "@/types";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import BookCard from "./BookCard";
 import EmptyLibrary from "./EmptyLibrary";
 import ViewModeToggle from "./ViewModeToggle";
@@ -110,7 +111,8 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
       case "recent_read":
         sorted.sort(
           (a, b) =>
-            new Date(b.end_date ?? "").getTime() - new Date(a.end_date ?? "").getTime()
+            new Date(b.end_date || "1970-01-01").getTime() -
+            new Date(a.end_date || "1970-01-01").getTime()
         );
         break;
       case "title":
@@ -130,35 +132,14 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
     return sorted;
   }, [filteredBooks, effectiveSortBy]);
 
-  // Progressive rendering
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  // Reset display count on tab change
-  useEffect(() => {
-    setDisplayCount(PAGE_SIZE);
-  }, [activeTab]);
+  // Progressive rendering via infinite scroll
+  const { displayCount, sentinelRef, hasMore } = useInfiniteScroll({
+    totalCount: sortedBooks.length,
+    pageSize: PAGE_SIZE,
+    resetDeps: [activeTab],
+  });
 
   const displayedBooks = sortedBooks.slice(0, displayCount);
-  const hasMore = displayCount < sortedBooks.length;
-
-  // IntersectionObserver for infinite scroll
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setDisplayCount((prev) => prev + PAGE_SIZE);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore]);
 
   if (userBooks.length === 0) {
     return <EmptyLibrary />;
