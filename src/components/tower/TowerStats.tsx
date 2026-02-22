@@ -1,7 +1,7 @@
 "use client";
 
 import { formatHeight } from "@/lib/tower/calculator";
-import { getNextMilestone } from "@/lib/tower/constants";
+import { CHARACTER_DEFINITIONS } from "@/lib/characters/milestones";
 import PixelCard from "@/components/ui/PixelCard";
 import PixelProgressBar from "@/components/ui/PixelProgressBar";
 
@@ -18,7 +18,9 @@ export default function TowerStats({
   totalPagesRead,
   selectedYear,
 }: TowerStatsProps) {
-  const nextMilestone = getNextMilestone(totalHeightCm);
+  const nextCharacter = CHARACTER_DEFINITIONS.find(
+    (c) => c.unlock_height_cm > totalHeightCm
+  );
 
   return (
     <PixelCard className="flex flex-col gap-4" hoverable={false}>
@@ -33,22 +35,22 @@ export default function TowerStats({
         <StatItem label="읽은 페이지" value={`${totalPagesRead.toLocaleString()}p`} />
       </div>
 
-      {/* Next milestone progress */}
-      {nextMilestone ? (
+      {/* Next character unlock progress */}
+      {nextCharacter ? (
         <div>
           <p className="mb-1 text-xs font-bold text-brown">
-            다음 목표: {nextMilestone.label}
+            다음 목표: {nextCharacter.name}
           </p>
           <PixelProgressBar
             value={Math.round(totalHeightCm)}
-            maxValue={nextMilestone.height_cm}
-            label={`${formatHeight(totalHeightCm)} / ${formatHeight(nextMilestone.height_cm)}`}
+            maxValue={nextCharacter.unlock_height_cm}
+            label={`${formatHeight(totalHeightCm)} / ${formatHeight(nextCharacter.unlock_height_cm)}`}
             color="bg-pixel-green"
           />
         </div>
       ) : (
         <p className="text-xs font-bold text-pixel-gold">
-          모든 마일스톤을 달성했어요!
+          모든 캐릭터를 해금했어요!
         </p>
       )}
     </PixelCard>
