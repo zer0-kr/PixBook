@@ -60,7 +60,7 @@ export default function GenreBreakdown({ data }: GenreBreakdownProps) {
           return (
             <div key={d.category} className="flex items-center gap-2">
               {/* Category label */}
-              <span className="text-xs text-brown w-20 truncate text-right shrink-0">
+              <span className="text-xs text-brown w-28 truncate text-right shrink-0" title={d.category}>
                 {d.category}
               </span>
 
