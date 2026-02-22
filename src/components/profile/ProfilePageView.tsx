@@ -70,8 +70,12 @@ export default function ProfilePageView({
     try {
       const res = await fetch("/api/library/delete-all", { method: "DELETE" });
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "삭제 실패");
+        let message = "삭제 실패";
+        try {
+          const data = await res.json();
+          message = data.error || message;
+        } catch {}
+        throw new Error(message);
       }
       toast("success", "서재 데이터가 모두 삭제되었습니다");
       setIsDeleteModalOpen(false);

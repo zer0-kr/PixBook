@@ -36,7 +36,7 @@ export function normalizeTitleForSearch(rawTitle: string): string[] {
  * non-alphanumeric (except Korean).
  */
 export function normalizeTitleForComparison(title: string): string {
-  let t = title;
+  let t = title.normalize("NFKC");
   t = t.replace(/^\[[^\]]*\]\s*/, "");
   t = t.replace(/\s*\([^)]*\)\s*/g, "");
   t = t.replace(/[:\-–—]/g, " ");
@@ -56,6 +56,7 @@ export function splitAuthors(author: string): string[] {
 /** Normalize a single author name for comparison. */
 export function normalizeAuthor(author: string): string {
   return author
+    .normalize("NFKC")
     .replace(/\([^)]*\)/g, "")
     .replace(/[,·、|\s]/g, "")
     .toLowerCase();

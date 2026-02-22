@@ -22,20 +22,22 @@ export default function SearchPage() {
 
   // Fetch user's existing library ISBNs on mount
   useEffect(() => {
+    let cancelled = false;
+
     async function fetchLibraryIsbns() {
       const supabase = createClient();
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) return;
+      if (!user || cancelled) return;
 
       const { data } = await supabase
         .from("user_books")
         .select("book:books(isbn13)")
         .eq("user_id", user.id);
 
-      if (data) {
+      if (data && !cancelled) {
         const isbns = new Set<string>();
         for (const row of data) {
           // row.book can be an object or array depending on the join
@@ -49,6 +51,7 @@ export default function SearchPage() {
     }
 
     fetchLibraryIsbns();
+    return () => { cancelled = true; };
   }, []);
 
   const handleSearch = useCallback(async (query: string) => {

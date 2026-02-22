@@ -26,7 +26,8 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
       const { error } = await supabase
         .from("user_books")
         .delete()
-        .eq("id", userBookId);
+        .eq("id", userBookId)
+        .eq("user_id", user!.id);
 
       if (error) throw error;
 
