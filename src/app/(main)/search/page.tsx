@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Header from "@/components/layout/Header";
 import SearchBar from "@/components/search/SearchBar";
 import SearchResults from "@/components/search/SearchResults";
@@ -18,6 +18,7 @@ export default function SearchPage() {
   const [libraryIsbns, setLibraryIsbns] = useState<Set<string>>(new Set());
   const [addingIsbn, setAddingIsbn] = useState<string | null>(null);
   const { toast } = useToast();
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   // Fetch user's existing library ISBNs on mount
   useEffect(() => {
@@ -51,6 +52,8 @@ export default function SearchPage() {
   }, []);
 
   const handleSearch = useCallback(async (query: string) => {
+    searchAbortRef.current?.abort();
+
     if (!query) {
       setItems([]);
       setTotalResults(0);
@@ -61,13 +64,18 @@ export default function SearchPage() {
     setIsLoading(true);
     setHasSearched(true);
 
+    const controller = new AbortController();
+    searchAbortRef.current = controller;
+
     try {
       const params = new URLSearchParams({
         query,
         page: "1",
         maxResults: "20",
       });
-      const response = await fetch(`/api/books/search?${params.toString()}`);
+      const response = await fetch(`/api/books/search?${params.toString()}`, {
+        signal: controller.signal,
+      });
 
       if (!response.ok) {
         throw new Error("Search failed");
@@ -76,7 +84,8 @@ export default function SearchPage() {
       const data: AladinSearchResponse = await response.json();
       setItems(data.item || []);
       setTotalResults(data.totalResults || 0);
-    } catch {
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
       toast("error", "검색 중 오류가 발생했습니다");
       setItems([]);
       setTotalResults(0);

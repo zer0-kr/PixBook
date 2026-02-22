@@ -64,20 +64,15 @@ export default function UnlockAnimation({
   );
 
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "hidden";
-      // Trigger entrance animation
-      const timer = setTimeout(() => setShow(true), 50);
-      return () => {
-        clearTimeout(timer);
-        document.removeEventListener("keydown", handleKeyDown);
-        document.body.style.overflow = "";
-      };
-    } else {
+    if (!isOpen) {
       setShow(false);
+      return;
     }
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    const timer = setTimeout(() => setShow(true), 50);
     return () => {
+      clearTimeout(timer);
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };

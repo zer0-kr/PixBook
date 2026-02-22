@@ -29,14 +29,18 @@ export default function EnrichmentProgress() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/books/enrich/candidates")
+    const controller = new AbortController();
+    fetch("/api/books/enrich/candidates", { signal: controller.signal })
       .then((res) => res.json())
       .then((data) => {
         setCandidates(data.candidates ?? []);
         setTotal(data.total ?? 0);
       })
-      .catch((err) => logError("Failed to fetch enrich candidates:", err))
+      .catch((err) => {
+        if (err.name !== "AbortError") logError("Failed to fetch enrich candidates:", err);
+      })
       .finally(() => setIsLoading(false));
+    return () => controller.abort();
   }, []);
 
   const runEnrichment = useCallback(async () => {
