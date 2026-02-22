@@ -136,10 +136,10 @@ interface HeightMarker {
 function buildHeightMarkers(totalCm: number, zoom: number): HeightMarker[] {
   // Choose step size depending on total height
   let stepCm: number;
-  if (totalCm <= 50) stepCm = 10;
-  else if (totalCm <= 200) stepCm = 20;
-  else if (totalCm <= 1000) stepCm = 100;
-  else stepCm = 500;
+  if (totalCm <= 5) stepCm = 1;
+  else if (totalCm <= 20) stepCm = 2;
+  else if (totalCm <= 100) stepCm = 10;
+  else stepCm = 50;
 
   const markers: HeightMarker[] = [];
   for (let cm = stepCm; cm <= totalCm; cm += stepCm) {

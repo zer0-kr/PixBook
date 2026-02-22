@@ -110,7 +110,7 @@ export async function addCompletedBook(
     .single();
 
   if (profile) {
-    const spineHeight = Math.round(data.page_count * 0.06);
+    const spineHeight = Math.round(data.page_count * 0.006);
     await supabase
       .from("profiles")
       .update({
