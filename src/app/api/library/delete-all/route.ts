@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
+import { getTowerHeight } from "@/lib/tower/rpc";
 
 export async function DELETE() {
   return withAuthAndRateLimit(
@@ -11,9 +12,7 @@ export async function DELETE() {
 
       if (error) throw error;
 
-      await supabase.rpc("recalculate_tower_height", {
-        p_user_id: user.id,
-      });
+      await getTowerHeight(supabase, user.id);
 
       return NextResponse.json({ success: true });
     },

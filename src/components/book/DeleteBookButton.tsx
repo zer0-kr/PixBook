@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import { revalidateLibrary } from "@/lib/actions/revalidate";
 import { logError } from "@/lib/logger";
+import { getTowerHeight } from "@/lib/tower/rpc";
 
 interface DeleteBookButtonProps {
   userBookId: string;
@@ -36,11 +37,7 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
       if (error) throw error;
 
       // 타워 높이 재계산
-      const { error: rpcError } = await supabase.rpc(
-        "recalculate_tower_height",
-        { p_user_id: user.id }
-      );
-      if (rpcError) logError("recalculate_tower_height failed:", rpcError);
+      await getTowerHeight(supabase, user.id);
 
       toast("success", "서재에서 삭제되었습니다");
       await revalidateLibrary();

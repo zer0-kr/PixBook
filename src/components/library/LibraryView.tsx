@@ -71,21 +71,6 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
     ? sortBy
     : sortOptions[0].key;
 
-  // Count per tab
-  const tabCounts = useMemo(() => {
-    const counts: Record<TabKey, number> = {
-      all: userBooks.length,
-      want_to_read: 0,
-      reading: 0,
-      completed: 0,
-      dropped: 0,
-    };
-    for (const ub of userBooks) {
-      counts[ub.reading_status]++;
-    }
-    return counts;
-  }, [userBooks]);
-
   // Filter by tab
   const filteredBooks = useMemo(() => {
     if (activeTab === "all") return userBooks;
