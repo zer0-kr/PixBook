@@ -1,5 +1,7 @@
 # 픽북 (PixBook)
 
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
 **나만의 독서 타워** — 책을 읽고 기록하면 타워가 쌓이고, 캐릭터를 수집하는 게이미피케이션 독서 앱
 
 알라딘 API 기반 한국어 독서 기록 서비스입니다.
