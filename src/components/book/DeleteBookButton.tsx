@@ -26,6 +26,7 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast("error", "로그인이 필요합니다");
+        setIsDeleting(false);
         return;
       }
       const { error } = await supabase

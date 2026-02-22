@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/logger";
 import type { User, SupabaseClient } from "@supabase/supabase-js";
 
 type AuthResult =
@@ -53,5 +54,13 @@ export async function withAuthAndRateLimit(
     );
   }
 
-  return handler(auth);
+  try {
+    return await handler(auth);
+  } catch (error) {
+    logError("API handler error:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
