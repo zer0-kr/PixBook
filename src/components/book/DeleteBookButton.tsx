@@ -23,22 +23,24 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast("error", "로그인이 필요합니다");
+        return;
+      }
       const { error } = await supabase
         .from("user_books")
         .delete()
         .eq("id", userBookId)
-        .eq("user_id", user!.id);
+        .eq("user_id", user.id);
 
       if (error) throw error;
 
       // 타워 높이 재계산
-      if (user) {
-        const { error: rpcError } = await supabase.rpc(
-          "recalculate_tower_height",
-          { p_user_id: user.id }
-        );
-        if (rpcError) logError("recalculate_tower_height failed:", rpcError);
-      }
+      const { error: rpcError } = await supabase.rpc(
+        "recalculate_tower_height",
+        { p_user_id: user.id }
+      );
+      if (rpcError) logError("recalculate_tower_height failed:", rpcError);
 
       toast("success", "서재에서 삭제되었습니다");
       await revalidateLibrary();
