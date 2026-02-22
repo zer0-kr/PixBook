@@ -89,7 +89,7 @@ export default function SearchBar({ onSearch, initialQuery = "" }: SearchBarProp
         onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder="책 제목, 저자, ISBN으로 검색..."
-        className="pixel-input w-full py-3 pl-10 pr-10 text-sm text-brown"
+        className="pixel-input w-full py-3 pl-10 pr-10 text-base text-brown"
         autoFocus
       />
       {/* Clear button */}

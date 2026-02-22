@@ -24,7 +24,7 @@ const PixelInput = forwardRef<HTMLInputElement, PixelInputProps>(
         <input
           ref={ref}
           id={inputId}
-          className={`pixel-input w-full text-sm text-brown ${className}`}
+          className={`pixel-input w-full text-base text-brown ${className}`}
           {...props}
         />
       </div>
