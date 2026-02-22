@@ -97,6 +97,18 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
         </div>
       </div>
 
+      {/* Reading duration */}
+      {startDate && endDate && (() => {
+        const days = Math.ceil(
+          (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+        return days > 0 ? (
+          <p className="text-sm text-brown-lighter text-center">
+            {days}일 동안 읽었어요
+          </p>
+        ) : null;
+      })()}
+
       {/* Star rating */}
       <div>
         <label className="block text-sm font-bold text-brown mb-2">
