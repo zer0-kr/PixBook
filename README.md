@@ -124,4 +124,4 @@ e2e/                    # Playwright E2E 테스트
 
 ## 라이선스
 
-MIT License
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) — 비상업적 목적으로 자유롭게 사용할 수 있으며, 수정 시 동일 라이선스로 공유해야 합니다.
