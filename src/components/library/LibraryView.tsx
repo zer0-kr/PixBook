@@ -60,7 +60,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
   };
 
   const [sortBy, setSortBy] = useState<SortKey>("newest");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("cover");
 
   const sortOptions = activeTab === "completed" ? COMPLETED_SORT_OPTIONS : DEFAULT_SORT_OPTIONS;
 
@@ -183,8 +183,6 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
           {sortedBooks.length}권
         </p>
         <div className="flex items-center gap-2">
-          {/* View mode toggle */}
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
           <select
             value={effectiveSortBy}
             onChange={(e) => setSortBy(e.target.value as SortKey)}
@@ -196,6 +194,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
               </option>
             ))}
           </select>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
         </div>
       </div>
 
