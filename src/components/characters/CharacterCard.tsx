@@ -37,6 +37,7 @@ const RARITY_LABELS: Record<CharacterRarity, string> = {
 interface CharacterCardProps {
   character: Character;
   isUnlocked: boolean;
+  onClick?: () => void;
 }
 
 /**
@@ -73,16 +74,21 @@ function PlaceholderSprite({
 export default function CharacterCard({
   character,
   isUnlocked,
+  onClick,
 }: CharacterCardProps) {
   const [imgError, setImgError] = useState(false);
 
   return (
     <div
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } } : undefined}
       className={`group relative flex flex-col overflow-hidden border-3 ${
         RARITY_BORDER_COLORS[character.rarity]
       } ${isUnlocked ? RARITY_GLOW[character.rarity] : ""} ${
         isUnlocked ? "" : "opacity-80"
-      }`}
+      } ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Sprite area */}
       <div className="relative aspect-square w-full overflow-hidden bg-cream-dark">

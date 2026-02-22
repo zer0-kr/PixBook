@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { PixelCard, PixelProgressBar, PixelBadge } from "@/components/ui";
+import Image from "next/image";
+import { PixelCard, PixelProgressBar, PixelBadge, PixelModal } from "@/components/ui";
 import { formatHeight } from "@/lib/tower/calculator";
 import { unlockPendingCharactersAction } from "@/lib/actions/character";
 import CharacterCard from "./CharacterCard";
@@ -35,6 +36,7 @@ export default function CharacterPageView({
 }: CharacterPageViewProps) {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [userCharacters, setUserCharacters] = useState(initialUserCharacters);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -149,6 +151,7 @@ export default function CharacterPageView({
             key={character.id}
             character={character}
             isUnlocked={unlockedIds.has(character.id)}
+            onClick={() => setSelectedCharacter(character)}
           />
         ))}
       </div>
@@ -159,6 +162,62 @@ export default function CharacterPageView({
             이 등급의 캐릭터가 없습니다.
           </p>
         </div>
+      )}
+
+      {/* Character detail modal */}
+      {selectedCharacter && (
+        <PixelModal
+          isOpen
+          onClose={() => setSelectedCharacter(null)}
+          title={unlockedIds.has(selectedCharacter.id) ? selectedCharacter.name : "???"}
+        >
+          <div className="flex flex-col items-center gap-4">
+            {/* Sprite */}
+            <div className="relative h-32 w-32 overflow-hidden border-3 border-brown bg-cream-dark">
+              {unlockedIds.has(selectedCharacter.id) ? (
+                <Image
+                  src={selectedCharacter.sprite_url}
+                  alt={selectedCharacter.name}
+                  fill
+                  unoptimized
+                  className="pixel-art object-contain p-2"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-brown/40">
+                  <span className="font-pixel text-3xl text-white/80">?</span>
+                </div>
+              )}
+            </div>
+
+            {/* Rarity badge */}
+            <PixelBadge variant={selectedCharacter.rarity}>
+              {selectedCharacter.rarity === "common" ? "일반" : selectedCharacter.rarity === "rare" ? "레어" : selectedCharacter.rarity === "epic" ? "에픽" : "전설"}
+            </PixelBadge>
+
+            {/* Description */}
+            {unlockedIds.has(selectedCharacter.id) && (
+              <p className="text-center text-sm text-brown-lighter">
+                {selectedCharacter.description}
+              </p>
+            )}
+
+            {/* Unlock height */}
+            <div className="w-full border-t-3 border-brown pt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-brown">해금 높이</span>
+                <span className="font-pixel text-sm text-brown">
+                  {formatHeight(selectedCharacter.unlock_height_cm)}
+                </span>
+              </div>
+              <div className="mt-1 flex items-center justify-between">
+                <span className="text-xs font-bold text-brown">상태</span>
+                <span className={`text-xs font-bold ${unlockedIds.has(selectedCharacter.id) ? "text-pixel-green" : "text-brown-lighter"}`}>
+                  {unlockedIds.has(selectedCharacter.id) ? "해금 완료" : "미해금"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </PixelModal>
       )}
     </div>
   );
