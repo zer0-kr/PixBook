@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, ".env.test") });
 
-const BASE_URL = process.env.BASE_URL || "https://book-log-khaki.vercel.app";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./tests",
