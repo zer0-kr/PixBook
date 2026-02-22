@@ -3,6 +3,7 @@ import {
   cleanupTestUserData,
   ensureBookExists,
   addBookToLibrary,
+  addCompletedBook,
 } from "../../helpers/data-factory";
 import { UI_TEXT, TEST_BOOK, TEST_BOOK_2 } from "../../helpers/test-data";
 
@@ -106,5 +107,44 @@ test.describe("서재 페이지", () => {
 
       await expect(page).toHaveURL(/\/book\//, { timeout: 10000 });
     });
+
+    test("제목순 정렬 시 가나다 순으로 표시된다", async ({ page }) => {
+      await page.goto("/library");
+      await expect(page.getByText("2권")).toBeVisible({ timeout: 15000 });
+
+      // 제목순 정렬
+      const sortSelect = page.locator("select");
+      await sortSelect.selectOption("title");
+
+      // "자바스크립트 패턴과 테스트"가 "클린 코드"보다 먼저 (ㅈ < ㅋ)
+      const bookLinks = page.locator("a[href*='/book/']");
+      const firstBookText = await bookLinks.first().textContent();
+      expect(firstBookText).toContain(TEST_BOOK_2.title);
+    });
+  });
+
+  test("완독 탭에서 추가 정렬 옵션이 표시된다", async ({ page }) => {
+    await cleanupTestUserData();
+    await addCompletedBook(TEST_BOOK, {
+      rating: 4,
+      start_date: "2026-01-01",
+      end_date: "2026-01-15",
+    });
+
+    await page.goto("/library");
+    await expect(page.getByText("1권")).toBeVisible({ timeout: 15000 });
+
+    // 완독 탭 클릭
+    await page.getByRole("tab", { name: UI_TEXT.tabCompleted }).click();
+    await expect(page.getByText("1권")).toBeVisible();
+
+    // 정렬 드롭다운에 완독 전용 옵션 확인 (option은 select 닫힌 상태에서 hidden이므로 attached로 확인)
+    const sortSelect = page.locator("select");
+    await expect(
+      sortSelect.locator("option", { hasText: "최근 읽은순" })
+    ).toBeAttached();
+    await expect(
+      sortSelect.locator("option", { hasText: "평점" })
+    ).toBeAttached();
   });
 });

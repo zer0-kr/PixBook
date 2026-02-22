@@ -256,4 +256,66 @@ test.describe("독서 기록", () => {
     const greenButton = page.getByLabel("색상 #2ECC71");
     await expect(greenButton).toHaveClass(/scale-110/, { timeout: 5000 });
   });
+
+  test("완독 시 읽은 기간이 표시된다", async ({ page }) => {
+    await page.goto(`/book/${userBookId}`);
+    await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
+      timeout: 15000,
+    });
+
+    // 시작일 입력
+    await page.locator("#start-date").fill("2026-01-25");
+    await page.waitForTimeout(1000);
+
+    // 완독으로 변경
+    await page.getByRole("button", { name: UI_TEXT.statusCompleted, exact: true }).click();
+    await expect(page.getByText(UI_TEXT.completedToast)).toBeVisible({
+      timeout: 10000,
+    });
+
+    // 완료일 수동 설정
+    await page.locator("#end-date").fill("2026-01-30");
+    await page.waitForTimeout(1500);
+
+    // "6일 동안 읽었어요" 표시 확인 (1/25~1/30 = 6일)
+    await expect(page.getByText("6일 동안 읽었어요")).toBeVisible({
+      timeout: 5000,
+    });
+  });
+
+  test("시작일만 있고 완료일이 없으면 읽은 기간이 표시되지 않는다", async ({
+    page,
+  }) => {
+    await page.goto(`/book/${userBookId}`);
+    await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
+      timeout: 15000,
+    });
+
+    // "읽는 중"으로 변경 → 시작일만 자동 설정
+    await page.getByRole("button", { name: UI_TEXT.statusReading }).click();
+    const startDate = page.locator("#start-date");
+    await expect(startDate).not.toHaveValue("", { timeout: 5000 });
+
+    // "일 동안 읽었어요" 텍스트가 없어야 함
+    await expect(page.getByText(/일 동안 읽었어요/)).toHaveCount(0);
+  });
+
+  test("시작일을 수동 변경하면 새로고침 후에도 유지된다", async ({ page }) => {
+    await page.goto(`/book/${userBookId}`);
+    await expect(page.getByText(UI_TEXT.readingRecord)).toBeVisible({
+      timeout: 15000,
+    });
+
+    const customDate = "2026-02-01";
+    await page.locator("#start-date").fill(customDate);
+
+    // Wait for debounced save (800ms) + network
+    await page.waitForTimeout(1500);
+
+    // Reload and verify persistence
+    await page.reload();
+    await expect(page.locator("#start-date")).toHaveValue(customDate, {
+      timeout: 15000,
+    });
+  });
 });
