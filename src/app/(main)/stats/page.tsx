@@ -76,11 +76,13 @@ export default async function StatsPage() {
     monthlyData.push({ month: monthStr, count });
   }
 
-  // Build calendar sessions data
-  const calendarSessions = sessions.map((s) => ({
-    date: s.date,
-    pages: s.pages_read,
-  }));
+  // Build calendar sessions data (reading_sessions + completed books)
+  const calendarSessions = [
+    ...sessions.map((s) => ({ date: s.date, pages: s.pages_read })),
+    ...completedBooks
+      .filter((ub) => ub.end_date)
+      .map((ub) => ({ date: ub.end_date!, pages: ub.book?.page_count ?? 0 })),
+  ];
 
   // Build genre breakdown
   const genreMap = new Map<string, number>();
