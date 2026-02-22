@@ -10,11 +10,6 @@ interface ReadingCalendarProps {
 }
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
-const MONTH_LABELS = [
-  "1월", "2월", "3월", "4월", "5월", "6월",
-  "7월", "8월", "9월", "10월", "11월", "12월",
-];
-
 function getIntensityLevel(pages: number): number {
   if (pages === 0) return 0;
   if (pages <= 10) return 1;
@@ -86,24 +81,6 @@ export default function ReadingCalendar({ sessions, year }: ReadingCalendarProps
     return result;
   }, [year, dateMap]);
 
-  // Calculate month label positions
-  const monthPositions = useMemo(() => {
-    const positions: { month: number; weekIndex: number }[] = [];
-    let lastMonth = -1;
-    weeks.forEach((week, weekIndex) => {
-      for (const day of week) {
-        if (!day.date) continue;
-        const month = parseInt(day.date.split("-")[1], 10) - 1;
-        if (month !== lastMonth) {
-          positions.push({ month, weekIndex });
-          lastMonth = month;
-        }
-        break;
-      }
-    });
-    return positions;
-  }, [weeks]);
-
   return (
     <PixelCard hoverable={false}>
       <h3 className="font-pixel text-xs text-brown mb-4">
@@ -112,23 +89,7 @@ export default function ReadingCalendar({ sessions, year }: ReadingCalendarProps
 
       <div className="overflow-x-auto">
         <div className="min-w-[680px]">
-          {/* Month labels */}
-          <div className="flex ml-8 mb-1">
-            {monthPositions.map(({ month, weekIndex }) => (
-              <span
-                key={`${month}-${weekIndex}`}
-                className="text-[10px] text-brown-lighter absolute"
-                style={{
-                  marginLeft: `${weekIndex * 14}px`,
-                  position: "relative",
-                }}
-              >
-                {MONTH_LABELS[month]}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex gap-0.5 mt-6">
+          <div className="flex gap-0.5">
             {/* Day of week labels */}
             <div className="flex flex-col gap-0.5 mr-1">
               {DAY_LABELS.map((label, i) => (
