@@ -4,6 +4,10 @@ import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { lookupAladin } from "@/lib/aladin/api";
 import { logError } from "@/lib/logger";
 
+export const maxDuration = 30;
+
+const BATCH_LIMIT = 20;
+
 export async function POST() {
   return withAuthAndRateLimit(
     async ({ user, supabase }) => {
@@ -35,6 +39,8 @@ export async function POST() {
         return NextResponse.json({ fixed: 0, message: "No books to fix" });
       }
 
+      const batch = candidates.slice(0, BATCH_LIMIT);
+
       const serviceClient = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -48,7 +54,7 @@ export async function POST() {
         newPageCount: number | null;
       }> = [];
 
-      for (const book of candidates) {
+      for (const book of batch) {
         try {
           const item = await lookupAladin(book.isbn13);
           const realPageCount = item?.subInfo?.itemPage;
@@ -86,6 +92,7 @@ export async function POST() {
       return NextResponse.json({
         fixed,
         total: candidates.length,
+        remaining: Math.max(0, candidates.length - BATCH_LIMIT),
         results,
       });
     },

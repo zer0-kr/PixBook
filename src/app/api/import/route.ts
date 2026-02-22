@@ -166,10 +166,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Recalculate tower stats
-      const { data: towerData } = await auth.supabase.rpc(
+      const { data: towerData, error: rpcError } = await auth.supabase.rpc(
         "recalculate_tower_height",
         { p_user_id: auth.user.id }
       );
+      if (rpcError) {
+        logError("import: recalculate_tower_height error:", rpcError);
+      }
 
       // Unlock characters based on new tower height
       const towerResult = (

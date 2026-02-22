@@ -33,7 +33,11 @@ export default function DeleteBookButton({ userBookId }: DeleteBookButtonProps) 
 
       // 타워 높이 재계산
       if (user) {
-        await supabase.rpc("recalculate_tower_height", { p_user_id: user.id });
+        const { error: rpcError } = await supabase.rpc(
+          "recalculate_tower_height",
+          { p_user_id: user.id }
+        );
+        if (rpcError) logError("recalculate_tower_height failed:", rpcError);
       }
 
       toast("success", "서재에서 삭제되었습니다");

@@ -11,7 +11,15 @@ const BATCH_LIMIT = 5;
 export async function POST(request: NextRequest) {
   return withAuthAndRateLimit(
     async ({ user, supabase }) => {
-      const body = await request.json();
+      let body: { bookIds: string[] };
+      try {
+        body = await request.json();
+      } catch {
+        return NextResponse.json(
+          { error: "Invalid JSON body" },
+          { status: 400 }
+        );
+      }
       const bookIds: string[] = body.bookIds;
 
       if (!Array.isArray(bookIds) || bookIds.length === 0 || bookIds.length > BATCH_LIMIT) {
