@@ -103,7 +103,7 @@ export default function ReadingRecord({ userBook, onUpdate }: ReadingRecordProps
           (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)
         ) + 1;
         return days > 0 ? (
-          <p className="text-sm text-brown-lighter text-center">
+          <p className="text-sm text-brown-lighter">
             {days}일 동안 읽었어요
           </p>
         ) : null;
