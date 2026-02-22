@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { PixelCard } from "@/components/ui";
+import { toDateString } from "@/lib/utils/date";
 
 interface ReadingCalendarProps {
   /** Array of { date: "YYYY-MM-DD", pages: number } */
@@ -59,7 +60,7 @@ export default function ReadingCalendar({ sessions, year }: ReadingCalendarProps
 
     const d = new Date(year, 0, 1);
     while (d.getFullYear() === year) {
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = toDateString(d);
       const dow = (d.getDay() + 6) % 7;
       const pages = dateMap.get(dateStr) ?? 0;
 

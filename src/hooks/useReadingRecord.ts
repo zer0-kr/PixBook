@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { logError } from "@/lib/logger";
 import { SPINE_COLORS } from "@/lib/constants";
 import { revalidateLibrary } from "@/lib/actions/revalidate";
+import { toDateString } from "@/lib/utils/date";
 import { useCharacterUnlock } from "./useCharacterUnlock";
 import type { UserBook, ReadingStatus } from "@/types";
 
@@ -99,14 +100,14 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
 
       // Auto-set start_date when status becomes reading
       if (newStatus === "reading" && !startDate) {
-        const today = new Date().toISOString().split("T")[0];
+        const today = toDateString();
         setStartDate(today);
         updates.start_date = today;
       }
 
       // Auto-set end_date when status becomes completed
       if (newStatus === "completed" && !endDate) {
-        const today = new Date().toISOString().split("T")[0];
+        const today = toDateString();
         setEndDate(today);
         updates.end_date = today;
       }

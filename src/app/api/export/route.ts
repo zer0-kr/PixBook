@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
+import { STATUS_LABELS } from "@/lib/constants";
+import { toDateString } from "@/lib/utils/date";
+import type { ReadingStatus } from "@/types";
 
 interface ExportRow {
   제목: string;
@@ -17,13 +20,6 @@ function escapeCsvFormula(str: string): string {
   if (/^[=+\-@\t\r|!]/.test(str)) return `'${str}`;
   return str;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  want_to_read: "읽고 싶은",
-  reading: "읽는 중",
-  completed: "완독",
-  dropped: "중단",
-};
 
 export async function GET(request: NextRequest) {
   return withAuthAndRateLimit(
@@ -64,7 +60,7 @@ export async function GET(request: NextRequest) {
           저자: book?.author ?? "",
           ISBN: book?.isbn13 ?? "",
           페이지수: book?.page_count ?? 0,
-          상태: STATUS_LABELS[row.reading_status] ?? row.reading_status,
+          상태: STATUS_LABELS[row.reading_status as ReadingStatus] ?? row.reading_status,
           평점: row.rating,
           한줄평: row.one_line_review ?? "",
           시작일: row.start_date ?? "",
@@ -76,7 +72,7 @@ export async function GET(request: NextRequest) {
         return new NextResponse(JSON.stringify(rows, null, 2), {
           headers: {
             "Content-Type": "application/json; charset=utf-8",
-            "Content-Disposition": `attachment; filename="pixbook-export-${new Date().toISOString().split("T")[0]}.json"`,
+            "Content-Disposition": `attachment; filename="pixbook-export-${toDateString()}.json"`,
           },
         });
       }
@@ -119,7 +115,7 @@ export async function GET(request: NextRequest) {
       return new NextResponse(csvContent, {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
-          "Content-Disposition": `attachment; filename="pixbook-export-${new Date().toISOString().split("T")[0]}.csv"`,
+          "Content-Disposition": `attachment; filename="pixbook-export-${toDateString()}.csv"`,
         },
       });
     },

@@ -1,14 +1,8 @@
 import { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
-import { logError } from "@/lib/logger";
+import { getTowerHeight } from "@/lib/tower/rpc";
 import type { Character } from "@/types";
-
-interface TowerHeightResult {
-  tower_height: number;
-  books_completed: number;
-  pages_read: number;
-}
 
 export function useCharacterUnlock(mountedRef: React.RefObject<boolean>) {
   const [unlockedCharacters, setUnlockedCharacters] = useState<Character[]>([]);
@@ -22,25 +16,14 @@ export function useCharacterUnlock(mountedRef: React.RefObject<boolean>) {
       } = await supabase.auth.getUser();
       if (!user || !mountedRef.current) return;
 
-      const { data, error } = await supabase.rpc("recalculate_tower_height", {
-        p_user_id: user.id,
-      });
-
-      if (error) {
-        logError("Error recalculating tower height:", error);
-        return;
-      }
-
-      const result = (data as TowerHeightResult[] | null)?.[0];
-      if (!result) return;
-
-      const towerHeight = Number(result.tower_height);
+      const height = await getTowerHeight(supabase, user.id);
+      if (height === null) return;
 
       // Check for newly unlocked characters
       const newlyUnlocked = await checkAndUnlockCharacters(
         supabase,
         user.id,
-        towerHeight
+        height
       );
 
       if (newlyUnlocked.length > 0 && mountedRef.current) {
@@ -48,6 +31,7 @@ export function useCharacterUnlock(mountedRef: React.RefObject<boolean>) {
         setShowUnlockIndex(0);
       }
     } catch (err) {
+      const { logError } = await import("@/lib/logger");
       logError("Error recalculating tower:", err);
     }
   }, [mountedRef]);

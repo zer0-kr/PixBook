@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { logError } from "@/lib/logger";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
+import { getTowerHeight } from "@/lib/tower/rpc";
 import {
   generateIsbn,
   mapStatus,
@@ -165,25 +166,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Recalculate tower stats
-      const { data: towerData, error: rpcError } = await auth.supabase.rpc(
-        "recalculate_tower_height",
-        { p_user_id: auth.user.id }
-      );
-      if (rpcError) {
-        logError("import: recalculate_tower_height error:", rpcError);
-      }
-
-      // Unlock characters based on new tower height
-      const towerResult = (
-        towerData as { tower_height: number }[] | null
-      )?.[0];
-      if (towerResult) {
-        await checkAndUnlockCharacters(
-          auth.supabase,
-          auth.user.id,
-          Number(towerResult.tower_height)
-        );
+      // Recalculate tower stats and unlock characters
+      const towerHeight = await getTowerHeight(auth.supabase, auth.user.id);
+      if (towerHeight !== null) {
+        await checkAndUnlockCharacters(auth.supabase, auth.user.id, towerHeight);
       }
 
       return NextResponse.json({
