@@ -1,5 +1,5 @@
 /**
- * DALL-E 3 prompts for 62 PickBook character sprites.
+ * DALL-E 3 prompts for 62 PixBook character sprites.
  * Theme: Height-based everyday objects & landmarks.
  *
  * Structure: STYLE_PREFIX + RARITY_MODIFIER[rarity] + character description

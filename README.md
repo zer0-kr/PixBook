@@ -1,11 +1,11 @@
-# 픽북 (PickBook)
+# 픽북 (PixBook)
 
 **나만의 독서 타워**
 
 책을 읽고 기록하면 타워가 쌓이고, 캐릭터를 수집하는 게이미피케이션 독서 앱.
 알라딘 API 기반 한국어 독서 기록 서비스입니다.
 
-[pickbook.vercel.app](https://book-log-khaki.vercel.app)
+[pixbook.vercel.app](https://book-log-khaki.vercel.app)
 
 ---
 
