@@ -6,7 +6,6 @@ import { PixelCard, PixelInput, PixelButton, PixelModal } from "@/components/ui"
 import { useToast } from "@/components/ui/PixelToast";
 import { createClient } from "@/lib/supabase/client";
 import { logError } from "@/lib/logger";
-import { formatHeight } from "@/lib/tower/calculator";
 import EnrichmentProgress from "./EnrichmentProgress";
 import DataImportSection from "./DataImportSection";
 import type { Profile } from "@/types";
@@ -126,33 +125,6 @@ export default function ProfilePageView({
           <div className="flex justify-between">
             <span className="text-brown-lighter">가입일</span>
             <span className="text-brown font-bold">{joinedDate}</span>
-          </div>
-        </div>
-      </PixelCard>
-
-      {/* Tower Stats Summary */}
-      <PixelCard hoverable={false}>
-        <h3 className="font-pixel text-xs text-brown mb-4">독서 현황</h3>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-lg font-pixel text-pixel-green">
-              {formatHeight(profile.tower_height_cm)}
-            </div>
-            <div className="text-[10px] text-brown-lighter mt-1">탑 높이</div>
-          </div>
-          <div>
-            <div className="text-lg font-pixel text-pixel-blue">
-              {profile.total_books_completed}권
-            </div>
-            <div className="text-[10px] text-brown-lighter mt-1">완독</div>
-          </div>
-          <div>
-            <div className="text-lg font-pixel text-pixel-purple">
-              {profile.total_pages_read.toLocaleString()}p
-            </div>
-            <div className="text-[10px] text-brown-lighter mt-1">
-              총 페이지
-            </div>
           </div>
         </div>
       </PixelCard>

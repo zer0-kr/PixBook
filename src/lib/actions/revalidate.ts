@@ -6,5 +6,4 @@ export async function revalidateLibrary() {
   revalidatePath("/library");
   revalidatePath("/tower");
   revalidatePath("/stats");
-  revalidatePath("/profile");
 }
