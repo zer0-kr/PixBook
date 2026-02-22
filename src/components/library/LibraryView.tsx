@@ -179,9 +179,9 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
 
       {/* Sort + Count header */}
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-brown-lighter">
+        <span className="inline-block border-2 border-brown bg-cream-dark px-2 py-0.5 text-xs font-bold text-brown shadow-pixel-sm">
           {sortedBooks.length}권
-        </p>
+        </span>
         <div className="flex items-center gap-2">
           <select
             value={effectiveSortBy}
