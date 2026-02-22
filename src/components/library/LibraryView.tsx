@@ -7,6 +7,7 @@ import BookCard from "./BookCard";
 import EmptyLibrary from "./EmptyLibrary";
 import ViewModeToggle from "./ViewModeToggle";
 import type { ViewMode } from "./ViewModeToggle";
+import RandomPickModal from "./RandomPickModal";
 
 type TabKey = "all" | ReadingStatus;
 type SortKey = "newest" | "recent_read" | "title" | "author" | "rating";
@@ -61,6 +62,7 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
 
   const [sortBy, setSortBy] = useState<SortKey>("newest");
   const [viewMode, setViewMode] = useState<ViewMode>("cover");
+  const [recommendedBook, setRecommendedBook] = useState<UserBook | null>(null);
 
   const sortOptions = activeTab === "completed" ? COMPLETED_SORT_OPTIONS : DEFAULT_SORT_OPTIONS;
 
@@ -88,6 +90,12 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
     if (activeTab === "all") return userBooks;
     return userBooks.filter((ub) => ub.reading_status === activeTab);
   }, [userBooks, activeTab]);
+
+  const pickRandomBook = () => {
+    if (filteredBooks.length === 0) return;
+    const idx = Math.floor(Math.random() * filteredBooks.length);
+    setRecommendedBook(filteredBooks[idx]);
+  };
 
   // Sort
   const sortedBooks = useMemo(() => {
@@ -179,9 +187,19 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
 
       {/* Sort + Count header */}
       <div className="flex items-center justify-between mb-4">
-        <span className="inline-block border-2 border-brown bg-cream-dark px-2 py-0.5 text-xs font-bold text-brown shadow-pixel-sm">
-          {sortedBooks.length}권
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-block border-2 border-brown bg-cream-dark px-2 py-0.5 text-xs font-bold text-brown shadow-pixel-sm">
+            {sortedBooks.length}권
+          </span>
+          {activeTab === "want_to_read" && filteredBooks.length > 0 && (
+            <button
+              onClick={pickRandomBook}
+              className="pixel-btn bg-status-want px-2 py-0.5 text-xs font-bold text-brown"
+            >
+              추천
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <select
             value={effectiveSortBy}
@@ -227,6 +245,12 @@ export default function LibraryView({ userBooks }: LibraryViewProps) {
           {hasMore && <div ref={sentinelRef} className="h-1" />}
         </>
       )}
+      <RandomPickModal
+        isOpen={recommendedBook !== null}
+        onClose={() => setRecommendedBook(null)}
+        book={recommendedBook}
+        onReshuffle={pickRandomBook}
+      />
     </div>
   );
 }
