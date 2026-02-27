@@ -11,6 +11,7 @@ export function useBookSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [libraryIsbns, setLibraryIsbns] = useState<Set<string>>(new Set());
+  const [libraryLoaded, setLibraryLoaded] = useState(false);
   const [addingIsbn, setAddingIsbn] = useState<string | null>(null);
   const { toast } = useToast();
   const searchAbortRef = useRef<AbortController | null>(null);
@@ -43,6 +44,7 @@ export function useBookSearch() {
         }
         setLibraryIsbns(isbns);
       }
+      setLibraryLoaded(true);
     }
 
     fetchLibraryIsbns();
@@ -94,6 +96,9 @@ export function useBookSearch() {
 
   const handleAdd = useCallback(
     async (item: AladinItem) => {
+      // Guard: prevent duplicate clicks while a request is in-flight
+      if (addingIsbn) return;
+
       setAddingIsbn(item.isbn13);
 
       try {
@@ -116,7 +121,7 @@ export function useBookSearch() {
           .select("id")
           .eq("user_id", user.id)
           .eq("book_id", book.id)
-          .single();
+          .maybeSingle();
 
         if (existing) {
           toast("info", "이미 서재에 있습니다");
@@ -132,6 +137,12 @@ export function useBookSearch() {
         });
 
         if (error) {
+          // Handle unique constraint violation (race condition safety net)
+          if (error.code === "23505") {
+            toast("info", "이미 서재에 있습니다");
+            setLibraryIsbns((prev) => new Set(prev).add(item.isbn13));
+            return;
+          }
           throw error;
         }
 
@@ -144,7 +155,7 @@ export function useBookSearch() {
         setAddingIsbn(null);
       }
     },
-    [toast]
+    [addingIsbn, toast]
   );
 
   return {
@@ -153,6 +164,7 @@ export function useBookSearch() {
     isLoading,
     hasSearched,
     libraryIsbns,
+    libraryLoaded,
     addingIsbn,
     handleSearch,
     handleAdd,

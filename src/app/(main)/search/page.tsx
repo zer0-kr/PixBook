@@ -12,6 +12,7 @@ export default function SearchPage() {
     isLoading,
     hasSearched,
     libraryIsbns,
+    libraryLoaded,
     addingIsbn,
     handleSearch,
     handleAdd,
@@ -29,6 +30,7 @@ export default function SearchPage() {
           totalResults={totalResults}
           isLoading={isLoading}
           libraryIsbns={libraryIsbns}
+          libraryLoaded={libraryLoaded}
           addingIsbn={addingIsbn}
           onAdd={handleAdd}
           hasSearched={hasSearched}

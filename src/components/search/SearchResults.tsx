@@ -8,6 +8,7 @@ interface SearchResultsProps {
   totalResults: number;
   isLoading: boolean;
   libraryIsbns: Set<string>;
+  libraryLoaded: boolean;
   addingIsbn: string | null;
   onAdd: (item: AladinItem) => void;
   hasSearched: boolean;
@@ -18,6 +19,7 @@ export default function SearchResults({
   totalResults,
   isLoading,
   libraryIsbns,
+  libraryLoaded,
   addingIsbn,
   onAdd,
   hasSearched,
@@ -68,8 +70,9 @@ export default function SearchResults({
           <SearchResultCard
             key={item.isbn13 || item.itemId}
             item={item}
-            isInLibrary={libraryIsbns.has(item.isbn13)}
+            isInLibrary={libraryLoaded && libraryIsbns.has(item.isbn13)}
             isAdding={addingIsbn === item.isbn13}
+            isLibraryLoading={!libraryLoaded}
             onAdd={onAdd}
           />
         ))}

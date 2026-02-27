@@ -9,6 +9,7 @@ interface SearchResultCardProps {
   item: AladinItem;
   isInLibrary: boolean;
   isAdding: boolean;
+  isLibraryLoading?: boolean;
   onAdd: (item: AladinItem) => void;
 }
 
@@ -16,6 +17,7 @@ export default function SearchResultCard({
   item,
   isInLibrary,
   isAdding,
+  isLibraryLoading,
   onAdd,
 }: SearchResultCardProps) {
   const [expanded, setExpanded] = useState(false);
@@ -91,9 +93,9 @@ export default function SearchResultCard({
                   e.stopPropagation();
                   onAdd(item);
                 }}
-                disabled={isAdding}
+                disabled={isAdding || isLibraryLoading}
               >
-                {isAdding ? "추가 중..." : "서재에 추가"}
+                {isAdding ? "추가 중..." : isLibraryLoading ? "확인 중..." : "서재에 추가"}
               </PixelButton>
             )}
           </div>
