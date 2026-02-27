@@ -22,7 +22,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https://image.aladin.co.kr",
       "font-src 'self' data:",
-      "connect-src 'self' https://kviqkaybojwntccalhaf.supabase.co",
+      `connect-src 'self' ${process.env.NEXT_PUBLIC_SUPABASE_URL || "https://your-project.supabase.co"}`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
