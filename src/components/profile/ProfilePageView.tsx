@@ -74,7 +74,7 @@ export default function ProfilePageView({
         try {
           const data = await res.json();
           message = data.error || message;
-        } catch {}
+        } catch { /* JSON parse may fail for non-JSON error responses — safe to ignore */ }
         throw new Error(message);
       }
       toast("success", "서재 데이터가 모두 삭제되었습니다");

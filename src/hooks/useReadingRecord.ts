@@ -46,8 +46,9 @@ export function useReadingRecord({ userBook, onUpdate }: UseReadingRecordParams)
         if (mountedRef.current) onUpdate(updates);
         revalidateLibrary();
         return true;
-      } catch {
+      } catch (err) {
         if (mountedRef.current) toast("error", "저장에 실패했습니다");
+        logError("Error saving reading record:", err);
         return false;
       } finally {
         if (mountedRef.current) setIsSaving(false);

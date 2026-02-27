@@ -33,7 +33,7 @@ export async function findOrCreateBook(
     .from("books")
     .select("*")
     .eq("isbn13", isbn13)
-    .single();
+    .maybeSingle();
 
   if (existing && !selectError) {
     return existing as Book;

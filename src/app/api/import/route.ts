@@ -3,6 +3,7 @@ import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { logError } from "@/lib/logger";
 import { checkAndUnlockCharacters } from "@/lib/characters/unlock";
 import { getTowerHeight } from "@/lib/tower/rpc";
+import { revalidateAllPages } from "@/lib/actions/revalidate";
 import {
   generateIsbn,
   mapStatus,
@@ -156,7 +157,10 @@ export async function POST(request: NextRequest) {
       if (newUserBooks.length > 0) {
         const { error: insertError } = await auth.supabase
           .from("user_books")
-          .insert(newUserBooks);
+          .upsert(newUserBooks, {
+            onConflict: "user_id,book_id",
+            ignoreDuplicates: true,
+          });
 
         if (insertError) {
           logError("Import: user_books insert failed", insertError);
@@ -171,6 +175,8 @@ export async function POST(request: NextRequest) {
       if (towerHeight !== null) {
         await checkAndUnlockCharacters(auth.supabase, auth.user.id, towerHeight);
       }
+
+      revalidateAllPages();
 
       return NextResponse.json({
         imported,

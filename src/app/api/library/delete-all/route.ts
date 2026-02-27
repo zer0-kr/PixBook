@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { getTowerHeight } from "@/lib/tower/rpc";
+import { revalidateAllPages } from "@/lib/actions/revalidate";
 
 export async function DELETE() {
   return withAuthAndRateLimit(
@@ -13,6 +14,7 @@ export async function DELETE() {
       if (error) throw error;
 
       await getTowerHeight(supabase, user.id);
+      revalidateAllPages();
 
       return NextResponse.json({ success: true });
     },

@@ -21,7 +21,7 @@ export default async function StatsPage() {
   const [user, { data: profileData }, { data: completedThisYear }, { data: sessionsData }] =
     await Promise.all([
       getUser(),
-      supabase.from("profiles").select("*").single(),
+      supabase.from("profiles").select("*").maybeSingle(),
       supabase
         .from("user_books")
         .select("id, end_date, book:books(page_count, category, title)")

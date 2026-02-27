@@ -3,6 +3,7 @@ import { createClient as createServerClient } from "@supabase/supabase-js";
 import { withAuthAndRateLimit } from "@/lib/api/auth";
 import { lookupAladin } from "@/lib/aladin/api";
 import { logError } from "@/lib/logger";
+import { revalidateAllPages } from "@/lib/actions/revalidate";
 
 export const maxDuration = 30;
 
@@ -88,6 +89,8 @@ export async function POST() {
           logError("fix-pages: recalculate_tower_height error:", rpcError);
         }
       }
+
+      if (fixed > 0) revalidateAllPages();
 
       return NextResponse.json({
         fixed,

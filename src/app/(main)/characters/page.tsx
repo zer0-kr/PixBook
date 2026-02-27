@@ -25,7 +25,7 @@ export default async function CharactersPage() {
       supabase
         .from("user_characters")
         .select("id, character_id, unlocked_at, character:characters(id, name, description, sprite_url, unlock_height_cm, rarity)"),
-      supabase.from("profiles").select("*").single(),
+      supabase.from("profiles").select("*").maybeSingle(),
       supabase
         .from("user_books")
         .select("book:books(page_count)")
@@ -39,16 +39,19 @@ export default async function CharactersPage() {
   // Calculate tower height directly from completed books (profile.tower_height_cm may be stale/0
   // because recalculate_tower_height RPC fails in server components due to auth.uid() = NULL)
   const totalPagesRead = (completedBooks ?? []).reduce(
-    (sum, ub) => sum + ((ub as any).book?.page_count ?? 0), 0
+    (sum, ub) => {
+      const book = ub.book as unknown as { page_count: number } | null;
+      return sum + (book?.page_count ?? 0);
+    }, 0
   );
   const towerHeightCm = totalPagesRead * BASE_CM_PER_PAGE;
   const unlockedIds = new Set(
     (userCharacters ?? []).map((uc) => uc.character_id)
   );
-  const hasUnlockable = (characters ?? []).some(
+  const hasUnlockable = ((characters ?? []) as Character[]).some(
     (c) =>
-      (c as Character).unlock_height_cm <= towerHeightCm &&
-      !unlockedIds.has((c as Character).id)
+      c.unlock_height_cm <= towerHeightCm &&
+      !unlockedIds.has(c.id)
   );
 
   return (
@@ -56,8 +59,8 @@ export default async function CharactersPage() {
       <Header title="캐릭터 도감" />
       <div className="p-4 md:p-6">
         <CharacterPageView
-          characters={(characters as Character[]) ?? []}
-          userCharacters={(userCharacters as unknown as UserCharacter[]) ?? []}
+          characters={(characters ?? []) as Character[]}
+          userCharacters={(userCharacters ?? []) as unknown as UserCharacter[]}
           profile={{ ...(profile as Profile), tower_height_cm: towerHeightCm }}
           pendingUnlock={hasUnlockable}
         />

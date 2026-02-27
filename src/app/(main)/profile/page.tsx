@@ -15,7 +15,7 @@ export default async function ProfilePage() {
 
   const [user, { data: profileData }] = await Promise.all([
     getUser(),
-    supabase.from("profiles").select("*").single(),
+    supabase.from("profiles").select("*").maybeSingle(),
   ]);
 
   if (!user) {

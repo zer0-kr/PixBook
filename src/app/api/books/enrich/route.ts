@@ -5,6 +5,7 @@ import { lookupAladin } from "@/lib/aladin/api";
 import { logError } from "@/lib/logger";
 import { findBestMatch, ACCEPT_THRESHOLD } from "@/lib/aladin/match";
 import type { ScoreBreakdown, BookRow } from "@/lib/aladin/scoring";
+import { revalidateAllPages } from "@/lib/actions/revalidate";
 
 const BATCH_LIMIT = 5;
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      const bookIds: string[] = body.bookIds;
+      const bookIds: string[] = body?.bookIds;
 
       if (!Array.isArray(bookIds) || bookIds.length === 0 || bookIds.length > BATCH_LIMIT) {
         return NextResponse.json(
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
             .from("books")
             .select("id")
             .eq("isbn13", realIsbn)
-            .single();
+            .maybeSingle();
 
           const updateData: Record<string, unknown> = {
             cover_url: matched.cover || null,
@@ -155,6 +156,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      if (enriched > 0) revalidateAllPages();
       return NextResponse.json({ enriched, failed, results });
     },
     { key: "enrich", limit: 60, windowSeconds: 300 }
