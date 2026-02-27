@@ -14,7 +14,7 @@ export async function revalidateLibrary() {
  * Revalidate all data-dependent pages.
  * Safe to call from API route handlers (non-"use server" context).
  */
-export function revalidateAllPages() {
+export async function revalidateAllPages() {
   revalidatePath("/library");
   revalidatePath("/tower");
   revalidatePath("/stats");
