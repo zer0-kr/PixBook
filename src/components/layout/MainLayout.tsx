@@ -14,7 +14,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const router = useRouter();
 
   useEffect(() => {
-    ["/library", "/tower", "/characters", "/stats", "/profile"].forEach(
+    ["/library", "/tower", "/characters", "/stats", "/profile", "/search"].forEach(
       (route) => router.prefetch(route)
     );
   }, [router]);
