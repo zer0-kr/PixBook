@@ -1,6 +1,15 @@
 {
-  "name": "tmp_book_log",
-  "version": "0.1.0",
+  "name": "pixbook",
+  "version": "1.0.0",
+  "description": "나만의 독서 타워를 쌓고, 픽셀 캐릭터를 수집하는 게이미피케이션 독서 앱",
+  "keywords": ["reading", "gamification", "pixel-art", "book-tracker", "nextjs", "supabase", "typescript"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zer0-kr/PixBook"
+  },
+  "author": "zer0-kr",
+  "homepage": "https://github.com/zer0-kr/PixBook",
+  "license": "CC-BY-NC-SA-4.0",
   "private": true,
   "engines": {
     "node": ">=20"
